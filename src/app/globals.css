@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-sotto-50 text-sotto-900 antialiased;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-xl bg-sotto-700 px-6 py-3 text-base font-semibold text-white transition-colors hover:bg-sotto-600 active:bg-sotto-800;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center rounded-xl border border-sotto-200 bg-white px-6 py-3 text-base font-semibold text-sotto-700 transition-colors hover:bg-sotto-50 active:bg-sotto-100;
+  }
+
+  .card {
+    @apply rounded-2xl border border-sotto-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md;
+  }
+}
