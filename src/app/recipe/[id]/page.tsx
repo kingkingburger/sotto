@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import Image from 'next/image';
 import { Clock, Flame, ChefHat } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import type { Recipe, RecipeStep, RecipeIngredient } from '@/types/recipe';
@@ -61,15 +62,18 @@ export default async function RecipePage({ params }: { params: Promise<{ id: str
       </div>
 
       {/* Hero image */}
-      <div className="mb-8 overflow-hidden rounded-3xl bg-sotto-100">
+      <div className="relative mb-8 h-64 overflow-hidden rounded-3xl bg-sotto-100 sm:h-80">
         {heroImage ? (
-          <img
+          <Image
             src={heroImage}
             alt={recipe.name}
-            className="h-64 w-full object-cover sm:h-80"
+            fill
+            sizes="(max-width: 768px) 100vw, 768px"
+            priority
+            className="object-cover"
           />
         ) : (
-          <div className="flex h-64 items-center justify-center text-6xl sm:h-80">🍱</div>
+          <div className="flex h-full items-center justify-center text-6xl">🍱</div>
         )}
       </div>
 
@@ -175,12 +179,15 @@ export default async function RecipePage({ params }: { params: Promise<{ id: str
                 <div className="flex-1 pt-0.5">
                   <p className="text-sm leading-relaxed text-sotto-800">{step.instruction}</p>
                   {step.image_url && (
-                    <img
-                      src={step.image_url}
-                      alt={`단계 ${step.step_number}`}
-                      className="mt-3 w-full rounded-xl object-cover"
-                      style={{ maxHeight: 240 }}
-                    />
+                    <div className="relative mt-3 h-60 w-full overflow-hidden rounded-xl">
+                      <Image
+                        src={step.image_url}
+                        alt={`단계 ${step.step_number}`}
+                        fill
+                        sizes="(max-width: 768px) 100vw, 600px"
+                        className="object-cover"
+                      />
+                    </div>
                   )}
                 </div>
               </div>
