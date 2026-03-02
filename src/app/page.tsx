@@ -43,11 +43,17 @@ export default function LandingPage() {
           &apos;뭐 싸가지?&apos; 고민, 이제 그만!
         </p>
         <Link
-          href="/select"
+          href="/menu?days=5"
           className="group inline-flex items-center gap-2 rounded-2xl bg-sotto-700 px-8 py-4 text-lg font-semibold text-white shadow-md transition-all hover:bg-sotto-600 hover:shadow-lg active:bg-sotto-800"
         >
-          이번 주 도시락 메뉴 정하기
+          바로 추천받기
           <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+        </Link>
+        <Link
+          href="/select"
+          className="mt-3 text-sm font-medium text-sotto-500 hover:text-sotto-700"
+        >
+          취향에 맞게 선택하기 →
         </Link>
       </section>
 

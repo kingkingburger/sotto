@@ -48,19 +48,17 @@ export async function POST(request: Request) {
     }
   }
 
-  // Validate tags
-  if (!Array.isArray(tags) || tags.length === 0) {
-    return NextResponse.json(
-      { error: 'tags must be a non-empty array' },
-      { status: 400 },
-    );
-  }
-  for (const tag of tags) {
-    if (!VALID_TAGS.includes(tag as ConceptTag)) {
-      return NextResponse.json(
-        { error: `Invalid tag: ${tag}. Valid tags are: ${VALID_TAGS.join(', ')}` },
-        { status: 400 },
-      );
+  // Validate tags (empty array = random recommendation)
+  const validatedTags: ConceptTag[] = [];
+  if (Array.isArray(tags)) {
+    for (const tag of tags) {
+      if (!VALID_TAGS.includes(tag as ConceptTag)) {
+        return NextResponse.json(
+          { error: `Invalid tag: ${tag}. Valid tags are: ${VALID_TAGS.join(', ')}` },
+          { status: 400 },
+        );
+      }
+      validatedTags.push(tag as ConceptTag);
     }
   }
 
@@ -86,7 +84,7 @@ export async function POST(request: Request) {
     const supabase = await createClient();
     const result = await getRecommendations(
       supabase,
-      tags as ConceptTag[],
+      validatedTags,
       days as 5 | 7,
       excludeIds as string[] | undefined,
     );

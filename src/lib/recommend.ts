@@ -44,13 +44,16 @@ export async function getRecommendations(
 ): Promise<MealPlan> {
   let fallback = false;
 
-  // --- Primary query: tag-filtered ---
+  // --- Primary query: tag-filtered (or all if no tags) ---
   let primaryQuery = supabase
     .from('recipes')
     .select(RECIPE_SUMMARY_FIELDS)
     .eq('is_lunchbox_friendly', true)
-    .overlaps('concept_tags', tags)
     .limit(POOL_LIMIT);
+
+  if (tags.length > 0) {
+    primaryQuery = primaryQuery.overlaps('concept_tags', tags);
+  }
 
   if (excludeIds && excludeIds.length > 0) {
     primaryQuery = primaryQuery.not('id', 'in', `(${excludeIds.join(',')})`);
