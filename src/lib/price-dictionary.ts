@@ -202,12 +202,46 @@ export const PRICE_DICTIONARY: Record<string, IngredientPrice> = {
   건포도: { pricePerUnit: 1000, unit: '100g', tier: 1 },
 };
 
+/** 중량/수량 패턴 제거 (e.g. "오이 70g" → "오이") */
+const AMOUNT_PATTERN = /\s*\d[\d./]*\s*(g|kg|ml|l|cc|개|장|줄|쪽|통|봉지|큰술|작은술|컵|인분|cm|mm)?$/i;
+
+/** 괄호 내용 제거 (e.g. "소고기(양지)" → "소고기") */
+const PAREN_PATTERN = /\s*[(\[（].+?[)\]）]/g;
+
+const _dictKeys = Object.keys(PRICE_DICTIONARY);
+
 /**
- * 재료명으로 가격 정보를 조회합니다. (exact match, 공백/대소문자 정규화)
+ * 재료명으로 가격 정보를 조회합니다.
+ * 1) exact match  2) 중량 제거  3) 괄호 제거  4) 사전 키가 재료명에 포함
  */
 export function lookupPrice(ingredientName: string): IngredientPrice | null {
-  const normalized = ingredientName.trim().toLowerCase();
-  return PRICE_DICTIONARY[normalized] ?? null;
+  const raw = ingredientName.trim();
+
+  // 1. exact match
+  if (PRICE_DICTIONARY[raw]) return PRICE_DICTIONARY[raw];
+
+  // 2. 중량/수량 패턴 제거
+  const noAmount = raw.replace(AMOUNT_PATTERN, '').trim();
+  if (noAmount && PRICE_DICTIONARY[noAmount]) return PRICE_DICTIONARY[noAmount];
+
+  // 3. 괄호 제거
+  const noParen = noAmount.replace(PAREN_PATTERN, '').trim();
+  if (noParen && noParen !== noAmount && PRICE_DICTIONARY[noParen]) return PRICE_DICTIONARY[noParen];
+
+  // 4. "다진 " 등 접두어 제거 후 매칭
+  const noPrefix = noParen.replace(/^(다진|썬|채\s*썬|슬라이스|간)\s+/, '').trim();
+  if (noPrefix && noPrefix !== noParen && PRICE_DICTIONARY[noPrefix]) return PRICE_DICTIONARY[noPrefix];
+
+  // 5. 사전 키 중 재료명에 포함된 가장 긴 키 매칭
+  let bestMatch: IngredientPrice | null = null;
+  let bestLen = 0;
+  for (const key of _dictKeys) {
+    if (key.length > bestLen && noParen.includes(key)) {
+      bestMatch = PRICE_DICTIONARY[key];
+      bestLen = key.length;
+    }
+  }
+  return bestMatch;
 }
 
 /**
