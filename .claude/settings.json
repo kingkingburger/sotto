@@ -40,5 +40,8 @@
       "Bash(tail *)",
       "Bash(wc *)"
     ]
+  },
+  "enabledPlugins": {
+    "oh-my-claudecode@omc": true
   }
 }
