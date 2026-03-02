@@ -91,8 +91,8 @@ src/
 
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=         # 클라이언트/서버 공통
-NEXT_PUBLIC_SUPABASE_ANON_KEY=    # RLS 읽기 전용
-SUPABASE_SERVICE_ROLE_KEY=        # scripts 전용 (쓰기)
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=  # 클라이언트 publishable key
+SUPABASE_SECRET_KEY=                   # scripts 전용 (쓰기)
 FOODSAFETY_API_KEY=               # 식약처 API (seed)
 YOUTUBE_API_KEY=                  # YouTube Data API v3
 ```
