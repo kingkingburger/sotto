@@ -32,10 +32,12 @@ export async function POST(request: Request) {
 
       if (error) throw error;
 
-      const menu = (data ?? []).map((recipe, index) => ({
-        day: index + 1,
-        recipe,
-      }));
+      // Reorder to match the requested recipeIds order
+      const idList = recipeIds as string[];
+      const dataMap = new Map((data ?? []).map((r) => [r.id, r]));
+      const menu = idList
+        .map((id, index) => ({ day: index + 1, recipe: dataMap.get(id) }))
+        .filter((d): d is { day: number; recipe: NonNullable<typeof d.recipe> } => d.recipe != null);
       return NextResponse.json({ menu, fallback: false });
     } catch (err) {
       console.error('[recommend] Error fetching by IDs:', err);

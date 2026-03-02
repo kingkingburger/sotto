@@ -7,21 +7,27 @@ import type { GroceryResponse, GroceryCategory as GroceryCategoryData } from '@/
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 
-const STORAGE_KEY = 'sotto-grocery-checked';
+const STORAGE_KEY_PREFIX = 'sotto-grocery-checked';
 
-function loadChecked(): Set<string> {
+function getStorageKey(ids: string): string {
+  // Use a simple hash of recipe IDs to scope checked state per menu
+  const hash = ids.split(',').sort().join(',');
+  return `${STORAGE_KEY_PREFIX}:${hash}`;
+}
+
+function loadChecked(storageKey: string): Set<string> {
   if (typeof window === 'undefined') return new Set();
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(storageKey);
     return raw ? new Set(JSON.parse(raw) as string[]) : new Set();
   } catch {
     return new Set();
   }
 }
 
-function saveChecked(checked: Set<string>) {
+function saveChecked(storageKey: string, checked: Set<string>) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify([...checked]));
+    localStorage.setItem(storageKey, JSON.stringify([...checked]));
   } catch {
     // ignore
   }
@@ -85,10 +91,16 @@ function CategorySection({ category, checked, onToggle }: CategorySectionProps) 
             const isChecked = checked.has(key);
             return (
               <li key={key} className="py-3">
-                <label className="flex cursor-pointer items-start gap-3">
+                <label className="flex cursor-pointer items-start gap-3" onClick={() => onToggle(key)}>
                   <div className="mt-0.5 flex-shrink-0">
+                    <input
+                      type="checkbox"
+                      checked={isChecked}
+                      onChange={() => onToggle(key)}
+                      className="sr-only"
+                      aria-label={item.name}
+                    />
                     <div
-                      onClick={() => onToggle(key)}
                       className={`flex h-5 w-5 items-center justify-center rounded border-2 transition-colors ${
                         isChecked
                           ? 'border-sotto-700 bg-sotto-700'
@@ -102,7 +114,6 @@ function CategorySection({ category, checked, onToggle }: CategorySectionProps) 
                   </div>
                   <div
                     className={`flex flex-1 items-start justify-between gap-2 transition-opacity ${isChecked ? 'opacity-40' : 'opacity-100'}`}
-                    onClick={() => onToggle(key)}
                   >
                     <div>
                       <span className={`text-sm font-medium text-sotto-800 ${isChecked ? 'line-through' : ''}`}>
@@ -147,9 +158,11 @@ function GroceryPage() {
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const [copied, setCopied] = useState(false);
 
+  const storageKey = getStorageKey(idsParam);
+
   useEffect(() => {
-    setChecked(loadChecked());
-  }, []);
+    setChecked(loadChecked(storageKey));
+  }, [storageKey]);
 
   useEffect(() => {
     if (!idsParam) return;
@@ -183,10 +196,10 @@ function GroceryPage() {
       } else {
         next.add(key);
       }
-      saveChecked(next);
+      saveChecked(storageKey, next);
       return next;
     });
-  }, []);
+  }, [storageKey]);
 
   function buildPlainText(): string {
     if (!groceryData) return '';
@@ -216,7 +229,7 @@ function GroceryPage() {
   const recipeCount = idsParam.split(',').filter(Boolean).length;
 
   return (
-    <div className="pb-24">
+    <div className="mx-auto max-w-4xl px-4 pb-24 pt-8">
       {/* Header */}
       <div className="mb-8">
         <button

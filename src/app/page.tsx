@@ -27,7 +27,7 @@ const steps = [
 
 export default function LandingPage() {
   return (
-    <div className="mx-auto max-w-4xl px-4 pb-24">
+    <div className="mx-auto max-w-4xl px-4 pb-24 pt-8">
       {/* Hero */}
       <section className="flex flex-col items-center py-20 text-center">
         <div className="mb-4 inline-flex items-center rounded-full bg-sotto-100 px-4 py-1.5 text-sm font-medium text-sotto-600">

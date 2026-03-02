@@ -30,7 +30,7 @@ export default function SelectPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-12">
+    <div className="mx-auto max-w-2xl px-4 py-8">
       {/* Heading */}
       <div className="mb-10 text-center">
         <h1 className="mb-2 text-3xl font-bold text-sotto-800">어떤 도시락을 원하세요?</h1>

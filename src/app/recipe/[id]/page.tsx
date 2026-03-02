@@ -55,7 +55,7 @@ export default async function RecipePage({ params }: { params: Promise<{ id: str
   const heroImage = recipe.main_image_url ?? recipe.thumbnail_url;
 
   return (
-    <div className="pb-16">
+    <div className="mx-auto max-w-4xl px-4 pb-16 pt-8">
       {/* Back link */}
       <div className="mb-6">
         <BackButton label="메뉴로 돌아가기" />
