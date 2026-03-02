@@ -53,6 +53,7 @@ export interface RecipeSummary {
   id: string;
   name: string;
   thumbnail_url: string | null;
+  main_image_url: string | null;
   concept_tags: ConceptTag[];
   dish_type: DishType;
   difficulty: Difficulty;

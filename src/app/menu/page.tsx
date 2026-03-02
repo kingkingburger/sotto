@@ -262,12 +262,13 @@ function MenuPage() {
                   {/* Thumbnail */}
                   <Link href={`/recipe/${recipe.id}`} className="block">
                     <div className="relative h-44 overflow-hidden bg-sotto-100">
-                      {recipe.thumbnail_url ? (
+                      {(recipe.main_image_url ?? recipe.thumbnail_url) ? (
                         <Image
-                          src={recipe.thumbnail_url}
+                          src={(recipe.main_image_url ?? recipe.thumbnail_url)!}
                           alt={recipe.name}
                           fill
                           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          quality={85}
                           className="object-cover transition-transform duration-300 group-hover:scale-105"
                         />
                       ) : (

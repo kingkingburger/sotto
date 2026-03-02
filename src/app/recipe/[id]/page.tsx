@@ -71,6 +71,7 @@ export default async function RecipePage({ params }: { params: Promise<{ id: str
             fill
             sizes="(max-width: 768px) 100vw, 768px"
             priority
+            quality={90}
             className="object-cover"
           />
         ) : (
@@ -194,6 +195,7 @@ export default async function RecipePage({ params }: { params: Promise<{ id: str
                         alt={`단계 ${step.step_number}`}
                         fill
                         sizes="(max-width: 768px) 100vw, 600px"
+                        quality={85}
                         className="object-cover"
                       />
                     </div>

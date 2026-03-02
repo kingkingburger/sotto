@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { ConceptTag } from '@/types/recipe';
 import type { DayMenu, MealPlan } from '@/types/menu';
-import { RECIPE_SUMMARY_FIELDS, RECIPE_SUMMARY_FIELDS_EXTENDED } from '@/lib/constants';
+import { RECIPE_SUMMARY_FIELDS, RECIPE_SUMMARY_FIELDS_EXTENDED, LUNCHBOX_DISH_TYPES } from '@/lib/constants';
 
 const POOL_LIMIT = 50;
 
@@ -51,7 +51,7 @@ async function queryRecipes(
   const { tags, excludeIds, limit = POOL_LIMIT } = filters;
 
   function applyFilters(q: ReturnType<ReturnType<SupabaseClient['from']>['select']>) {
-    let filtered = q.eq('is_lunchbox_friendly', true).limit(limit);
+    let filtered = q.eq('is_lunchbox_friendly', true).in('dish_type', LUNCHBOX_DISH_TYPES).limit(limit);
     if (tags && tags.length > 0) {
       filtered = filtered.overlaps('concept_tags', tags);
     }

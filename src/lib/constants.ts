@@ -1,4 +1,4 @@
-import type { ConceptTag, IngredientCategory } from '@/types/recipe';
+import type { ConceptTag, DishType, IngredientCategory } from '@/types/recipe';
 
 export const CONCEPT_TAGS: {
   id: ConceptTag;
@@ -43,11 +43,14 @@ export const CATEGORY_ORDER: IngredientCategory[] = [
   'other',
 ];
 
+/** 도시락에 적합한 dish_type 화이트리스트 (국/찌개/기타 제외) */
+export const LUNCHBOX_DISH_TYPES: DishType[] = ['rice', 'side', 'one_plate', 'dessert'];
+
 export const RECIPE_SUMMARY_FIELDS =
-  'id, name, thumbnail_url, concept_tags, dish_type, difficulty, calories, cooking_time_minutes';
+  'id, name, thumbnail_url, main_image_url, concept_tags, dish_type, difficulty, calories, cooking_time_minutes';
 
 export const RECIPE_SUMMARY_FIELDS_EXTENDED =
-  'id, name, thumbnail_url, concept_tags, dish_type, difficulty, calories, cooking_time_minutes, price_tier, price_confidence, estimated_price, youtube_video_id';
+  'id, name, thumbnail_url, main_image_url, concept_tags, dish_type, difficulty, calories, cooking_time_minutes, price_tier, price_confidence, estimated_price, youtube_video_id';
 
 export const DAY_LABELS = ['월요일', '화요일', '수요일', '목요일', '금요일', '토요일', '일요일'];
 

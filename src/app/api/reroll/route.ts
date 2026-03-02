@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import type { ConceptTag, RecipeSummary } from '@/types/recipe';
-import { RECIPE_SUMMARY_FIELDS, RECIPE_SUMMARY_FIELDS_EXTENDED } from '@/lib/constants';
+import { RECIPE_SUMMARY_FIELDS, RECIPE_SUMMARY_FIELDS_EXTENDED, LUNCHBOX_DISH_TYPES } from '@/lib/constants';
 
 const VALID_TAGS: ConceptTag[] = ['budget', 'taste', 'volume', 'easy', 'nutrition'];
 
@@ -61,6 +61,7 @@ export async function POST(request: Request) {
           .from('recipes')
           .select(fields)
           .eq('is_lunchbox_friendly', true)
+          .in('dish_type', LUNCHBOX_DISH_TYPES)
           .overlaps('concept_tags', tags as ConceptTag[]);
 
         if ((excludeIds as string[]).length > 0) {
