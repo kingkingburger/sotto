@@ -9,7 +9,8 @@
     "lint": "next lint",
     "seed": "tsx scripts/seed-recipes.ts",
     "parse-ingredients": "tsx scripts/parse-ingredients.ts",
-    "classify-tags": "tsx scripts/classify-tags.ts"
+    "classify-tags": "tsx scripts/classify-tags.ts",
+    "seed-youtube": "tsx scripts/seed-youtube.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.0",
