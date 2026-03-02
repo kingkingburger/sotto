@@ -1,9 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { ConceptTag } from '@/types/recipe';
 import type { DayMenu, MealPlan } from '@/types/menu';
-
-const RECIPE_SUMMARY_FIELDS =
-  'id, name, thumbnail_url, concept_tags, dish_type, difficulty, calories, cooking_time_minutes';
+import { RECIPE_SUMMARY_FIELDS, RECIPE_SUMMARY_FIELDS_EXTENDED } from '@/lib/constants';
 
 const POOL_LIMIT = 50;
 
@@ -36,6 +34,52 @@ function diversify<T extends { dish_type: string }>(pool: T[], days: number): T[
   return picked;
 }
 
+/**
+ * Try selecting with extended fields (price_tier etc.), fall back to base fields
+ * if DB migration hasn't been applied yet.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function queryRecipes(
+  query: ReturnType<SupabaseClient['from']>,
+  filters: {
+    isLunchboxFriendly?: boolean;
+    tags?: ConceptTag[];
+    excludeIds?: string[];
+    limit?: number;
+  },
+): Promise<any[]> {
+  const { tags, excludeIds, limit = POOL_LIMIT } = filters;
+
+  function applyFilters(q: ReturnType<ReturnType<SupabaseClient['from']>['select']>) {
+    let filtered = q.eq('is_lunchbox_friendly', true).limit(limit);
+    if (tags && tags.length > 0) {
+      filtered = filtered.overlaps('concept_tags', tags);
+    }
+    if (excludeIds && excludeIds.length > 0) {
+      filtered = filtered.not('id', 'in', `(${excludeIds.join(',')})`);
+    }
+    return filtered;
+  }
+
+  // Try extended fields first
+  const extended = applyFilters(query.select(RECIPE_SUMMARY_FIELDS_EXTENDED));
+  const { data, error } = await extended;
+
+  if (!error) return (data ?? []) as any[];
+
+  // Fall back to base fields if extended columns don't exist
+  if (error.code === '42703') {
+    const base = applyFilters(
+      query.select(RECIPE_SUMMARY_FIELDS),
+    );
+    const { data: baseData, error: baseError } = await base;
+    if (baseError) throw new Error(`Failed to fetch recipes: ${baseError.message}`);
+    return (baseData ?? []) as any[];
+  }
+
+  throw new Error(`Failed to fetch recipes: ${error.message}`);
+}
+
 export async function getRecommendations(
   supabase: SupabaseClient,
   tags: ConceptTag[],
@@ -45,54 +89,25 @@ export async function getRecommendations(
   let fallback = false;
 
   // --- Primary query: tag-filtered (or all if no tags) ---
-  let primaryQuery = supabase
-    .from('recipes')
-    .select(RECIPE_SUMMARY_FIELDS)
-    .eq('is_lunchbox_friendly', true)
-    .limit(POOL_LIMIT);
-
-  if (tags.length > 0) {
-    primaryQuery = primaryQuery.overlaps('concept_tags', tags);
-  }
-
-  if (excludeIds && excludeIds.length > 0) {
-    primaryQuery = primaryQuery.not('id', 'in', `(${excludeIds.join(',')})`);
-  }
-
-  const { data: primaryPool, error: primaryError } = await primaryQuery;
-
-  if (primaryError) {
-    throw new Error(`Failed to fetch recommendations: ${primaryError.message}`);
-  }
-
-  let pool = primaryPool ?? [];
+  let pool = await queryRecipes(supabase.from('recipes'), {
+    tags: tags.length > 0 ? tags : undefined,
+    excludeIds,
+  });
 
   // --- Fallback: fill from all lunchbox-friendly if not enough ---
   if (pool.length < days) {
     fallback = true;
 
-    const usedIds = new Set([
+    const usedIds = [
       ...(excludeIds ?? []),
       ...pool.map((r) => r.id as string),
-    ]);
+    ];
 
-    let fallbackQuery = supabase
-      .from('recipes')
-      .select(RECIPE_SUMMARY_FIELDS)
-      .eq('is_lunchbox_friendly', true)
-      .limit(POOL_LIMIT);
+    const extra = await queryRecipes(supabase.from('recipes'), {
+      excludeIds: usedIds.length > 0 ? usedIds : undefined,
+    });
 
-    if (usedIds.size > 0) {
-      fallbackQuery = fallbackQuery.not('id', 'in', `(${[...usedIds].join(',')})`);
-    }
-
-    const { data: fallbackPool, error: fallbackError } = await fallbackQuery;
-
-    if (fallbackError) {
-      throw new Error(`Failed to fetch fallback recommendations: ${fallbackError.message}`);
-    }
-
-    pool = [...pool, ...(fallbackPool ?? [])];
+    pool = [...pool, ...extra];
   }
 
   // Shuffle then diversify

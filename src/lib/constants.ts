@@ -43,6 +43,12 @@ export const CATEGORY_ORDER: IngredientCategory[] = [
   'other',
 ];
 
+export const RECIPE_SUMMARY_FIELDS =
+  'id, name, thumbnail_url, concept_tags, dish_type, difficulty, calories, cooking_time_minutes';
+
+export const RECIPE_SUMMARY_FIELDS_EXTENDED =
+  'id, name, thumbnail_url, concept_tags, dish_type, difficulty, calories, cooking_time_minutes, price_tier, price_confidence, youtube_video_id';
+
 export const DAY_LABELS = ['월요일', '화요일', '수요일', '목요일', '금요일', '토요일', '일요일'];
 
 export const DIFFICULTY_LABELS: Record<string, string> = {

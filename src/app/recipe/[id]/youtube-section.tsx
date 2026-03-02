@@ -43,7 +43,7 @@ export function YouTubeSection({ recipeId, existingVideoId }: YouTubeSectionProp
         <Youtube className="h-5 w-5 text-red-500" />
         레시피 영상
       </h2>
-      <div className="overflow-hidden rounded-2xl border border-sotto-200">
+      <div className="overflow-hidden rounded-2xl border border-sotto-200 shadow-card">
         <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
           <iframe
             src={`https://www.youtube.com/embed/${videoId}`}

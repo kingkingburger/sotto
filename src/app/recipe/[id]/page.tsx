@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server';
 import type { Recipe, RecipeStep, RecipeIngredient } from '@/types/recipe';
 import { CATEGORY_LABELS, CATEGORY_ORDER, DIFFICULTY_LABELS, TAG_COLORS, CONCEPT_TAGS } from '@/lib/constants';
 import { Badge } from '@/components/ui/badge';
+import { PriceBadge } from '@/components/ui/price-badge';
 import { BackButton } from '@/components/back-button';
 import { YouTubeSection } from './youtube-section';
 
@@ -62,7 +63,7 @@ export default async function RecipePage({ params }: { params: Promise<{ id: str
       </div>
 
       {/* Hero image */}
-      <div className="relative mb-8 h-64 overflow-hidden rounded-3xl bg-sotto-100 sm:h-80">
+      <div className="relative mb-8 h-64 overflow-hidden rounded-3xl bg-sotto-100 shadow-card sm:h-80">
         {heroImage ? (
           <Image
             src={heroImage}
@@ -81,6 +82,11 @@ export default async function RecipePage({ params }: { params: Promise<{ id: str
       <div className="mb-6">
         <h1 className="mb-4 text-2xl font-bold text-sotto-900 sm:text-3xl">{recipe.name}</h1>
         <div className="flex flex-wrap gap-2">
+          <PriceBadge
+            priceTier={recipe.price_tier}
+            priceConfidence={recipe.price_confidence}
+            size="md"
+          />
           {recipe.difficulty && (
             <Badge
               label={`${DIFFICULTY_LABELS[recipe.difficulty] ?? recipe.difficulty}`}
@@ -105,7 +111,7 @@ export default async function RecipePage({ params }: { params: Promise<{ id: str
 
       {/* Nutrition bar */}
       {(recipe.calories || recipe.protein || recipe.carbs || recipe.fat) && (
-        <div className="mb-8 rounded-2xl border border-sotto-200 bg-white p-5">
+        <div className="mb-8 rounded-2xl border border-sotto-200 bg-white p-5 shadow-card">
           <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-sotto-500">
             영양 정보
           </h2>
@@ -130,6 +136,9 @@ export default async function RecipePage({ params }: { params: Promise<{ id: str
         </div>
       )}
 
+      {/* YouTube - above ingredients */}
+      <YouTubeSection recipeId={id} existingVideoId={recipe.youtube_video_id} />
+
       {/* Ingredients */}
       {ingredients.length > 0 && (
         <div className="mb-8">
@@ -139,7 +148,7 @@ export default async function RecipePage({ params }: { params: Promise<{ id: str
               const items = grouped.get(cat) ?? [];
               const label = CATEGORY_LABELS[cat as keyof typeof CATEGORY_LABELS] ?? cat;
               return (
-                <div key={cat} className="rounded-2xl border border-sotto-200 bg-white p-4">
+                <div key={cat} className="rounded-2xl border border-sotto-200 bg-white p-4 shadow-card">
                   <h3 className="mb-3 text-sm font-semibold text-sotto-500">{label}</h3>
                   <ul className="space-y-2">
                     {items.map((ing) => (
@@ -171,7 +180,7 @@ export default async function RecipePage({ params }: { params: Promise<{ id: str
             {steps.map((step) => (
               <div
                 key={step.id}
-                className="flex gap-4 rounded-2xl border border-sotto-200 bg-white p-4"
+                className="flex gap-4 rounded-2xl border border-sotto-200 bg-white p-4 shadow-card"
               >
                 <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-sotto-700 text-sm font-bold text-white">
                   {step.step_number}
@@ -196,12 +205,9 @@ export default async function RecipePage({ params }: { params: Promise<{ id: str
         </div>
       )}
 
-      {/* YouTube */}
-      <YouTubeSection recipeId={id} existingVideoId={recipe.youtube_video_id} />
-
       {/* Tip */}
       {recipe.tip && (
-        <div className="mt-8 rounded-2xl border border-sotto-200 bg-sotto-50 p-5">
+        <div className="rounded-2xl border border-sotto-200 bg-gradient-to-br from-sotto-50 to-white p-5 shadow-card">
           <h2 className="mb-2 flex items-center gap-2 text-sm font-semibold text-sotto-600">
             <Clock className="h-4 w-4" />
             요리 팁

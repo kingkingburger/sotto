@@ -42,6 +42,8 @@ export interface Recipe {
   youtube_video_id: string | null;
   youtube_search_query: string | null;
   is_lunchbox_friendly: boolean;
+  price_tier: number | null;
+  price_confidence: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -55,6 +57,9 @@ export interface RecipeSummary {
   difficulty: Difficulty;
   calories: number | null;
   cooking_time_minutes: number | null;
+  price_tier: number | null;
+  price_confidence: number | null;
+  youtube_video_id: string | null;
 }
 
 export interface RecipeStep {

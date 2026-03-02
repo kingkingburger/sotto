@@ -10,6 +10,9 @@ export const MOCK_RECIPES: RecipeSummary[] = [
     difficulty: 'medium',
     calories: 520,
     cooking_time_minutes: 30,
+    price_tier: 2,
+    price_confidence: 0.8,
+    youtube_video_id: null,
   },
   {
     id: 'mock-2',
@@ -20,6 +23,9 @@ export const MOCK_RECIPES: RecipeSummary[] = [
     difficulty: 'easy',
     calories: 180,
     cooking_time_minutes: 10,
+    price_tier: 1,
+    price_confidence: 0.9,
+    youtube_video_id: 'dQw4w9WgXcQ',
   },
   {
     id: 'mock-3',
@@ -30,6 +36,9 @@ export const MOCK_RECIPES: RecipeSummary[] = [
     difficulty: 'easy',
     calories: 320,
     cooking_time_minutes: 15,
+    price_tier: 2,
+    price_confidence: 0.7,
+    youtube_video_id: null,
   },
   {
     id: 'mock-4',
@@ -40,6 +49,9 @@ export const MOCK_RECIPES: RecipeSummary[] = [
     difficulty: 'easy',
     calories: 450,
     cooking_time_minutes: 15,
+    price_tier: 1,
+    price_confidence: 0.85,
+    youtube_video_id: 'dQw4w9WgXcQ',
   },
   {
     id: 'mock-5',
@@ -50,6 +62,9 @@ export const MOCK_RECIPES: RecipeSummary[] = [
     difficulty: 'medium',
     calories: 580,
     cooking_time_minutes: 25,
+    price_tier: 2,
+    price_confidence: 0.75,
+    youtube_video_id: null,
   },
   {
     id: 'mock-6',
@@ -60,6 +75,9 @@ export const MOCK_RECIPES: RecipeSummary[] = [
     difficulty: 'easy',
     calories: 480,
     cooking_time_minutes: 20,
+    price_tier: 1,
+    price_confidence: 0.8,
+    youtube_video_id: 'dQw4w9WgXcQ',
   },
   {
     id: 'mock-7',
@@ -70,6 +88,9 @@ export const MOCK_RECIPES: RecipeSummary[] = [
     difficulty: 'easy',
     calories: 200,
     cooking_time_minutes: 20,
+    price_tier: 1,
+    price_confidence: 0.9,
+    youtube_video_id: null,
   },
   {
     id: 'mock-8',
@@ -80,6 +101,9 @@ export const MOCK_RECIPES: RecipeSummary[] = [
     difficulty: 'medium',
     calories: 350,
     cooking_time_minutes: 40,
+    price_tier: 2,
+    price_confidence: 0.6,
+    youtube_video_id: null,
   },
   {
     id: 'mock-9',
@@ -90,6 +114,9 @@ export const MOCK_RECIPES: RecipeSummary[] = [
     difficulty: 'easy',
     calories: 400,
     cooking_time_minutes: 10,
+    price_tier: 1,
+    price_confidence: 0.85,
+    youtube_video_id: null,
   },
   {
     id: 'mock-10',
@@ -100,5 +127,8 @@ export const MOCK_RECIPES: RecipeSummary[] = [
     difficulty: 'easy',
     calories: 150,
     cooking_time_minutes: 30,
+    price_tier: 1,
+    price_confidence: 0.7,
+    youtube_video_id: null,
   },
 ];

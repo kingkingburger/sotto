@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getRecommendations } from '@/lib/recommend';
 import { getMockRecommendations } from '@/lib/mock-recommend';
 import type { ConceptTag } from '@/types/recipe';
+import { RECIPE_SUMMARY_FIELDS, RECIPE_SUMMARY_FIELDS_EXTENDED } from '@/lib/constants';
 
 const VALID_TAGS: ConceptTag[] = ['budget', 'taste', 'volume', 'easy', 'nutrition'];
 const VALID_DAYS = [5, 7];
@@ -39,10 +40,21 @@ export async function POST(request: Request) {
     try {
       const { createClient } = await import('@/lib/supabase/server');
       const supabase = await createClient();
-      const { data, error } = await supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let result: { data: any[] | null; error: any } = await supabase
         .from('recipes')
-        .select('id, name, thumbnail_url, concept_tags, dish_type, difficulty, calories, cooking_time_minutes')
+        .select(RECIPE_SUMMARY_FIELDS_EXTENDED)
         .in('id', recipeIds as string[]);
+
+      // Fall back to base fields if extended columns don't exist yet
+      if (result.error?.code === '42703') {
+        result = await supabase
+          .from('recipes')
+          .select(RECIPE_SUMMARY_FIELDS)
+          .in('id', recipeIds as string[]);
+      }
+
+      const { data, error } = result;
 
       if (error) throw error;
 

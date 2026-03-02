@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useState, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Copy, Check, ChevronDown, ChevronRight, ShoppingBasket, ArrowLeft } from 'lucide-react';
+import { Copy, Check, ChevronDown, ChevronRight, ShoppingBasket, ArrowLeft, Coins } from 'lucide-react';
 import type { GroceryResponse, GroceryCategory as GroceryCategoryData } from '@/types/grocery';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -10,7 +10,6 @@ import { Button } from '@/components/ui/button';
 const STORAGE_KEY_PREFIX = 'sotto-grocery-checked';
 
 function getStorageKey(ids: string): string {
-  // Use a simple hash of recipe IDs to scope checked state per menu
   const hash = ids.split(',').sort().join(',');
   return `${STORAGE_KEY_PREFIX}:${hash}`;
 }
@@ -37,7 +36,7 @@ function GrocerySkeleton() {
   return (
     <div className="space-y-4">
       {[1, 2, 3].map((i) => (
-        <div key={i} className="rounded-2xl border border-sotto-200 bg-white p-4">
+        <div key={i} className="rounded-2xl border border-sotto-200 bg-white p-4 shadow-card">
           <Skeleton className="mb-3 h-5 w-32" />
           <div className="space-y-2">
             <Skeleton className="h-8 w-full" />
@@ -59,15 +58,18 @@ interface CategorySectionProps {
 function CategorySection({ category, checked, onToggle }: CategorySectionProps) {
   const [open, setOpen] = useState(true);
   const checkedCount = category.items.filter((item) => checked.has(`${category.category}:${item.name}`)).length;
+  const allChecked = checkedCount === category.items.length;
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-sotto-200 bg-white">
+    <div className="overflow-hidden rounded-2xl border border-sotto-200 bg-white shadow-card transition-all">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center justify-between px-5 py-4 text-left hover:bg-sotto-50"
+        className="flex w-full items-center justify-between px-5 py-4 text-left transition-colors hover:bg-sotto-50"
       >
         <div className="flex items-center gap-3">
-          <span className="font-semibold text-sotto-800">{category.categoryLabel}</span>
+          <span className={`font-semibold ${allChecked ? 'text-sotto-400 line-through' : 'text-sotto-800'}`}>
+            {category.categoryLabel}
+          </span>
           <span className="rounded-full bg-sotto-100 px-2 py-0.5 text-xs font-medium text-sotto-600">
             {category.items.length}개
           </span>
@@ -78,9 +80,9 @@ function CategorySection({ category, checked, onToggle }: CategorySectionProps) 
           )}
         </div>
         {open ? (
-          <ChevronDown className="h-4 w-4 text-sotto-400" />
+          <ChevronDown className="h-4 w-4 text-sotto-400 transition-transform" />
         ) : (
-          <ChevronRight className="h-4 w-4 text-sotto-400" />
+          <ChevronRight className="h-4 w-4 text-sotto-400 transition-transform" />
         )}
       </button>
 
@@ -101,9 +103,9 @@ function CategorySection({ category, checked, onToggle }: CategorySectionProps) 
                       aria-label={item.name}
                     />
                     <div
-                      className={`flex h-5 w-5 items-center justify-center rounded border-2 transition-colors ${
+                      className={`flex h-5 w-5 items-center justify-center rounded border-2 transition-all duration-200 ${
                         isChecked
-                          ? 'border-sotto-700 bg-sotto-700'
+                          ? 'border-sotto-700 bg-sotto-700 scale-95'
                           : 'border-sotto-300 bg-white'
                       }`}
                     >
@@ -113,10 +115,10 @@ function CategorySection({ category, checked, onToggle }: CategorySectionProps) 
                     </div>
                   </div>
                   <div
-                    className={`flex flex-1 items-start justify-between gap-2 transition-opacity ${isChecked ? 'opacity-40' : 'opacity-100'}`}
+                    className={`flex flex-1 items-start justify-between gap-2 transition-all duration-200 ${isChecked ? 'opacity-40' : 'opacity-100'}`}
                   >
                     <div>
-                      <span className={`text-sm font-medium text-sotto-800 ${isChecked ? 'line-through' : ''}`}>
+                      <span className={`text-sm font-medium text-sotto-800 transition-all ${isChecked ? 'line-through' : ''}`}>
                         {item.name}
                       </span>
                       {item.recipes.length > 0 && (
@@ -234,7 +236,7 @@ function GroceryPage() {
       <div className="mb-8">
         <button
           onClick={() => router.back()}
-          className="mb-4 inline-flex items-center gap-1.5 text-sm text-sotto-500 hover:text-sotto-700"
+          className="mb-4 inline-flex items-center gap-1.5 text-sm text-sotto-500 transition-colors hover:text-sotto-700"
         >
           <ArrowLeft className="h-4 w-4" />
           메뉴로 돌아가기
@@ -246,21 +248,30 @@ function GroceryPage() {
               {recipeCount}일 도시락 재료 · 총 {totalItems}개 항목
             </p>
           </div>
-          <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-sotto-100">
+          <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-sotto-100 to-sotto-200">
             <ShoppingBasket className="h-6 w-6 text-sotto-600" />
           </div>
         </div>
       </div>
 
+      {/* Price tier summary */}
+      {groceryData && 'priceTierSummary' in groceryData && (groceryData as GroceryResponse & { priceTierSummary?: { tier1: number; tier2: number; tier3: number } }).priceTierSummary && (
+        <div className="mb-6 flex items-center gap-3 rounded-xl border border-sotto-200 bg-white px-4 py-3 shadow-card">
+          <Coins className="h-4 w-4 text-sotto-400" />
+          <span className="text-sm font-medium text-sotto-500">레시피 기준 원가:</span>
+          <span className="text-sm text-sotto-600">tier 요약</span>
+        </div>
+      )}
+
       {/* Content */}
       {loading ? (
         <GrocerySkeleton />
       ) : error ? (
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-8 text-center">
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-8 text-center shadow-card">
           <p className="text-red-700">{error}</p>
         </div>
       ) : !groceryData || groceryData.categories.length === 0 ? (
-        <div className="rounded-2xl border border-sotto-200 bg-sotto-50 p-8 text-center">
+        <div className="rounded-2xl border border-sotto-200 bg-sotto-50 p-8 text-center shadow-card">
           <p className="text-sotto-500">재료 정보가 없어요</p>
         </div>
       ) : (
@@ -282,7 +293,7 @@ function GroceryPage() {
           <div className="mx-auto flex max-w-4xl items-center justify-between gap-3">
             <button
               onClick={() => router.back()}
-              className="text-sm font-medium text-sotto-500 hover:text-sotto-700"
+              className="text-sm font-medium text-sotto-500 transition-colors hover:text-sotto-700"
             >
               다시 메뉴 보기
             </button>

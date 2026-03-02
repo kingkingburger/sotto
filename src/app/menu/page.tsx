@@ -11,16 +11,20 @@ import type { MealPlan, DayMenu } from '@/types/menu';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
+import { PriceBadge } from '@/components/ui/price-badge';
+import { VideoIndicator } from '@/components/ui/video-indicator';
 
 function MenuCardSkeleton() {
   return (
-    <div className="rounded-2xl border border-sotto-200 bg-white p-4 shadow-sm">
-      <Skeleton className="mb-3 h-40 w-full rounded-xl" />
-      <Skeleton className="mb-2 h-5 w-2/3" />
-      <Skeleton className="mb-3 h-4 w-1/2" />
-      <div className="flex gap-2">
-        <Skeleton className="h-5 w-16 rounded-full" />
-        <Skeleton className="h-5 w-16 rounded-full" />
+    <div className="rounded-2xl border border-sotto-200 bg-white shadow-card">
+      <Skeleton className="h-44 w-full rounded-t-2xl" />
+      <div className="p-4">
+        <Skeleton className="mb-2 h-5 w-2/3" />
+        <Skeleton className="mb-3 h-4 w-1/2" />
+        <div className="flex gap-2">
+          <Skeleton className="h-5 w-16 rounded-full" />
+          <Skeleton className="h-5 w-16 rounded-full" />
+        </div>
       </div>
     </div>
   );
@@ -82,7 +86,6 @@ function MenuPage() {
       setError(null);
       try {
         if (idsParam) {
-          // Reconstruct from stored IDs — fetch recipes directly by ID
           const idList = idsParam.split(',').filter(Boolean);
           const res = await fetch('/api/recommend', {
             method: 'POST',
@@ -148,19 +151,34 @@ function MenuPage() {
   const selectedTagObjects = CONCEPT_TAGS.filter((t) => tags.includes(t.id));
   const groceryIds = menu.map((d) => d.recipe.id).join(',');
 
+  // Price tier summary
+  const tierSummary = menu.reduce(
+    (acc, d) => {
+      const tier = d.recipe.price_tier;
+      const conf = d.recipe.price_confidence;
+      if (tier && conf && conf >= 0.5) {
+        acc[tier as 1 | 2 | 3]++;
+      } else {
+        acc.unknown++;
+      }
+      return acc;
+    },
+    { 1: 0, 2: 0, 3: 0, unknown: 0 } as Record<1 | 2 | 3 | 'unknown', number>,
+  );
+
   return (
     <div className="mx-auto max-w-5xl px-4 pb-32 pt-8">
       {/* Header */}
       <div className="mb-8">
         <Link
           href="/select"
-          className="mb-4 inline-flex items-center gap-1.5 text-sm text-sotto-500 hover:text-sotto-700"
+          className="mb-4 inline-flex items-center gap-1.5 text-sm text-sotto-500 transition-colors hover:text-sotto-700"
         >
           <ArrowLeft className="h-4 w-4" />
           다시 선택
         </Link>
         <h1 className="mb-3 text-2xl font-bold text-sotto-800 sm:text-3xl">이번 주 도시락 메뉴</h1>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {selectedTagObjects.map((tag) => (
             <Badge
               key={tag.id}
@@ -171,6 +189,30 @@ function MenuPage() {
           <Badge label={`${days}일치`} />
         </div>
       </div>
+
+      {/* Price tier summary */}
+      {!loading && menu.length > 0 && (tierSummary[1] > 0 || tierSummary[2] > 0 || tierSummary[3] > 0) && (
+        <div className="mb-6 flex items-center gap-3 rounded-xl border border-sotto-200 bg-white px-4 py-3 shadow-card">
+          <span className="text-sm font-medium text-sotto-500">이번 주 가격:</span>
+          <div className="flex items-center gap-2">
+            {tierSummary[1] > 0 && (
+              <span className="rounded-full bg-green-50 px-2 py-0.5 text-xs font-semibold text-green-600 border border-green-200">
+                $ ×{tierSummary[1]}
+              </span>
+            )}
+            {tierSummary[2] > 0 && (
+              <span className="rounded-full bg-sotto-50 px-2 py-0.5 text-xs font-semibold text-sotto-600 border border-sotto-200">
+                $$ ×{tierSummary[2]}
+              </span>
+            )}
+            {tierSummary[3] > 0 && (
+              <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-600 border border-amber-200">
+                $$$ ×{tierSummary[3]}
+              </span>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Fallback notice */}
       {fallback && !loading && (
@@ -196,20 +238,29 @@ function MenuPage() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {loading
           ? Array.from({ length: days }).map((_, i) => <MenuCardSkeleton key={i} />)
-          : menu.map((dayItem) => {
+          : menu.map((dayItem, index) => {
               const { recipe, day } = dayItem;
               const isRerolling = rerollingDay === day;
 
               return (
                 <div
                   key={day}
-                  className="group relative rounded-2xl border border-sotto-200 bg-white shadow-sm transition-shadow hover:shadow-md"
+                  className="group relative overflow-hidden rounded-2xl border border-sotto-200 bg-white shadow-card transition-all hover:shadow-card-hover hover:-translate-y-0.5 animate-fadeIn opacity-0"
+                  style={{ animationDelay: `${index * 80}ms` }}
                 >
                   {/* Day label */}
                   <div className="absolute left-3 top-3 z-10">
                     <span className="rounded-lg bg-sotto-700/90 px-2.5 py-1 text-xs font-bold text-white backdrop-blur-sm">
                       {DAY_LABELS[day - 1]}
                     </span>
+                  </div>
+
+                  {/* Video indicator */}
+                  <div className="absolute left-3 bottom-[calc(50%+0.75rem)] z-10">
+                    <VideoIndicator
+                      videoId={recipe.youtube_video_id}
+                      onClick={() => router.push(`/recipe/${recipe.id}`)}
+                    />
                   </div>
 
                   {/* Reroll button */}
@@ -224,7 +275,7 @@ function MenuPage() {
 
                   {/* Thumbnail */}
                   <Link href={`/recipe/${recipe.id}`} className="block">
-                    <div className="relative h-44 overflow-hidden rounded-t-2xl bg-sotto-100">
+                    <div className="relative h-44 overflow-hidden bg-sotto-100">
                       {recipe.thumbnail_url ? (
                         <Image
                           src={recipe.thumbnail_url}
@@ -262,8 +313,12 @@ function MenuPage() {
                         )}
                       </div>
 
-                      {/* Tags */}
-                      <div className="flex flex-wrap gap-1.5">
+                      {/* Tags + Price */}
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <PriceBadge
+                          priceTier={recipe.price_tier}
+                          priceConfidence={recipe.price_confidence}
+                        />
                         <Badge
                           label={DIFFICULTY_LABELS[recipe.difficulty] ?? recipe.difficulty}
                           colorClass="bg-sotto-100 text-sotto-600 border-sotto-200"

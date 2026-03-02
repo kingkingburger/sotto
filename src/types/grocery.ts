@@ -12,8 +12,16 @@ export interface GroceryCategory {
   items: GroceryItem[];
 }
 
+export interface PriceTierSummary {
+  tier1: number;
+  tier2: number;
+  tier3: number;
+  unknown: number;
+}
+
 export interface GroceryResponse {
   categories: GroceryCategory[];
+  priceTierSummary?: PriceTierSummary;
 }
 
 export interface GroceryRequest {
