@@ -12,6 +12,7 @@ export const MOCK_RECIPES: RecipeSummary[] = [
     cooking_time_minutes: 30,
     price_tier: 2,
     price_confidence: 0.8,
+    estimated_price: 8500,
     youtube_video_id: null,
   },
   {
@@ -25,6 +26,7 @@ export const MOCK_RECIPES: RecipeSummary[] = [
     cooking_time_minutes: 10,
     price_tier: 1,
     price_confidence: 0.9,
+    estimated_price: 2500,
     youtube_video_id: 'dQw4w9WgXcQ',
   },
   {
@@ -38,6 +40,7 @@ export const MOCK_RECIPES: RecipeSummary[] = [
     cooking_time_minutes: 15,
     price_tier: 2,
     price_confidence: 0.7,
+    estimated_price: 6200,
     youtube_video_id: null,
   },
   {
@@ -51,6 +54,7 @@ export const MOCK_RECIPES: RecipeSummary[] = [
     cooking_time_minutes: 15,
     price_tier: 1,
     price_confidence: 0.85,
+    estimated_price: 3200,
     youtube_video_id: 'dQw4w9WgXcQ',
   },
   {
@@ -64,6 +68,7 @@ export const MOCK_RECIPES: RecipeSummary[] = [
     cooking_time_minutes: 25,
     price_tier: 2,
     price_confidence: 0.75,
+    estimated_price: 7800,
     youtube_video_id: null,
   },
   {
@@ -77,6 +82,7 @@ export const MOCK_RECIPES: RecipeSummary[] = [
     cooking_time_minutes: 20,
     price_tier: 1,
     price_confidence: 0.8,
+    estimated_price: 4500,
     youtube_video_id: 'dQw4w9WgXcQ',
   },
   {
@@ -90,6 +96,7 @@ export const MOCK_RECIPES: RecipeSummary[] = [
     cooking_time_minutes: 20,
     price_tier: 1,
     price_confidence: 0.9,
+    estimated_price: 2800,
     youtube_video_id: null,
   },
   {
@@ -103,6 +110,7 @@ export const MOCK_RECIPES: RecipeSummary[] = [
     cooking_time_minutes: 40,
     price_tier: 2,
     price_confidence: 0.6,
+    estimated_price: 9200,
     youtube_video_id: null,
   },
   {
@@ -116,6 +124,7 @@ export const MOCK_RECIPES: RecipeSummary[] = [
     cooking_time_minutes: 10,
     price_tier: 1,
     price_confidence: 0.85,
+    estimated_price: 2100,
     youtube_video_id: null,
   },
   {
@@ -129,6 +138,7 @@ export const MOCK_RECIPES: RecipeSummary[] = [
     cooking_time_minutes: 30,
     price_tier: 1,
     price_confidence: 0.7,
+    estimated_price: 3500,
     youtube_video_id: null,
   },
 ];

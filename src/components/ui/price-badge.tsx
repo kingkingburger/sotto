@@ -2,27 +2,31 @@ import { clsx } from 'clsx';
 import { Coins } from 'lucide-react';
 
 interface PriceBadgeProps {
-  priceTier: number | null;
+  estimatedPrice: number | null;
   priceConfidence: number | null;
   size?: 'sm' | 'md';
   className?: string;
 }
 
-const tierLabels: Record<number, string> = {
-  1: '$',
-  2: '$$',
-  3: '$$$',
-};
+function formatPrice(price: number): string {
+  if (price >= 10000) {
+    const man = Math.floor(price / 10000);
+    const remainder = Math.round((price % 10000) / 1000) * 1000;
+    if (remainder === 0) return `${man}만원`;
+    return `${man}만 ${remainder.toLocaleString()}원`;
+  }
+  return `${Math.round(price / 100) * 100}원`;
+}
 
-const tierColors: Record<number, string> = {
-  1: 'text-green-600 bg-green-50 border-green-200',
-  2: 'text-sotto-600 bg-sotto-50 border-sotto-200',
-  3: 'text-amber-600 bg-amber-50 border-amber-200',
-};
+function getPriceColor(price: number): string {
+  if (price <= 5000) return 'text-green-600 bg-green-50 border-green-200';
+  if (price <= 10000) return 'text-sotto-600 bg-sotto-50 border-sotto-200';
+  return 'text-amber-600 bg-amber-50 border-amber-200';
+}
 
-export function PriceBadge({ priceTier, priceConfidence, size = 'sm', className }: PriceBadgeProps) {
+export function PriceBadge({ estimatedPrice, priceConfidence, size = 'sm', className }: PriceBadgeProps) {
   const isUnknown =
-    priceTier === null || priceConfidence === null || priceConfidence < 0.5;
+    estimatedPrice === null || priceConfidence === null || priceConfidence < 0.5;
 
   if (isUnknown) {
     return (
@@ -39,19 +43,17 @@ export function PriceBadge({ priceTier, priceConfidence, size = 'sm', className 
     );
   }
 
-  const tier = Math.max(1, Math.min(3, priceTier));
-
   return (
     <span
       className={clsx(
         'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 font-semibold',
         size === 'sm' ? 'text-xs' : 'text-sm',
-        tierColors[tier],
+        getPriceColor(estimatedPrice),
         className,
       )}
     >
       <Coins className={size === 'sm' ? 'h-3 w-3' : 'h-3.5 w-3.5'} />
-      약 {tierLabels[tier]}
+      약 {formatPrice(estimatedPrice)}
     </span>
   );
 }

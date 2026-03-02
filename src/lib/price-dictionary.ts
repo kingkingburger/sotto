@@ -211,37 +211,45 @@ export function lookupPrice(ingredientName: string): IngredientPrice | null {
 }
 
 /**
- * 재료 목록의 tier 가중 평균을 계산하여 최종 price_tier를 반환합니다.
- * @returns { tier, confidence } — confidence는 매칭 성공률 (0.0-1.0)
+ * 재료 목록의 예상 가격(원)과 tier를 계산합니다.
+ * @returns { estimatedPrice, tier, confidence }
+ *   - estimatedPrice: 총 예상 원가 (원)
+ *   - tier: 1=저렴(~5천), 2=보통(5천~1만), 3=고가(1만~)
+ *   - confidence: 매칭 성공률 (0.0-1.0)
  */
-export function calculatePriceTier(
+export function calculatePrice(
   ingredients: { name: string }[],
-): { tier: number; confidence: number } {
+): { estimatedPrice: number; tier: number; confidence: number } {
   if (ingredients.length === 0) {
-    return { tier: 2, confidence: 0 };
+    return { estimatedPrice: 0, tier: 2, confidence: 0 };
   }
 
   let matchedCount = 0;
-  let tierSum = 0;
+  let totalPrice = 0;
 
   for (const ing of ingredients) {
     const price = lookupPrice(ing.name);
     if (price) {
       matchedCount++;
-      tierSum += price.tier;
+      totalPrice += price.pricePerUnit;
     }
   }
 
   if (matchedCount === 0) {
-    return { tier: 2, confidence: 0 };
+    return { estimatedPrice: 0, tier: 2, confidence: 0 };
   }
 
   const confidence = matchedCount / ingredients.length;
-  const avgTier = tierSum / matchedCount;
-  const tier = Math.round(avgTier);
+  const estimatedPrice = Math.round(totalPrice / 100) * 100;
+
+  let tier: number;
+  if (estimatedPrice <= 5000) tier = 1;
+  else if (estimatedPrice <= 10000) tier = 2;
+  else tier = 3;
 
   return {
-    tier: Math.max(1, Math.min(3, tier)),
+    estimatedPrice,
+    tier,
     confidence: Math.round(confidence * 100) / 100,
   };
 }

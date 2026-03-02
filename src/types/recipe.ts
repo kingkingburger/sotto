@@ -44,6 +44,7 @@ export interface Recipe {
   is_lunchbox_friendly: boolean;
   price_tier: number | null;
   price_confidence: number | null;
+  estimated_price: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -59,6 +60,7 @@ export interface RecipeSummary {
   cooking_time_minutes: number | null;
   price_tier: number | null;
   price_confidence: number | null;
+  estimated_price: number | null;
   youtube_video_id: string | null;
 }
 

@@ -1,10 +1,10 @@
 /**
- * 레시피별 price_tier + price_confidence 자동 추정 스크립트
+ * 레시피별 예상 가격(원) + price_tier + price_confidence 자동 추정 스크립트
  * Usage: bun run estimate-prices
  */
 
 import { createClient } from '@supabase/supabase-js';
-import { calculatePriceTier, PRICE_BASE_DATE } from '../src/lib/price-dictionary';
+import { calculatePrice, PRICE_BASE_DATE } from '../src/lib/price-dictionary';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SECRET_KEY;
@@ -17,7 +17,7 @@ if (!supabaseUrl || !supabaseKey) {
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function main() {
-  console.log(`\n=== 레시피 가격 tier 추정 스크립트 ===`);
+  console.log(`\n=== 레시피 가격 추정 스크립트 ===`);
   console.log(`가격 기준: ${PRICE_BASE_DATE} 대형마트 평균가\n`);
 
   // 1. 모든 레시피 ID 조회
@@ -36,9 +36,9 @@ async function main() {
   let updated = 0;
   let skipped = 0;
   const tierCounts = { 1: 0, 2: 0, 3: 0 };
-  const confidenceSum: number[] = [];
+  const prices: number[] = [];
 
-  // 2. 레시피별 재료 조회 → tier 계산 → 업데이트
+  // 2. 레시피별 재료 조회 → 가격 계산 → 업데이트
   for (const recipe of recipes) {
     const { data: ingredients, error: ingError } = await supabase
       .from('recipe_ingredients')
@@ -57,11 +57,15 @@ async function main() {
       continue;
     }
 
-    const { tier, confidence } = calculatePriceTier(ingredients);
+    const { estimatedPrice, tier, confidence } = calculatePrice(ingredients);
 
     const { error: updateError } = await supabase
       .from('recipes')
-      .update({ price_tier: tier, price_confidence: confidence })
+      .update({
+        estimated_price: estimatedPrice,
+        price_tier: tier,
+        price_confidence: confidence,
+      })
       .eq('id', recipe.id);
 
     if (updateError) {
@@ -70,26 +74,27 @@ async function main() {
       continue;
     }
 
+    console.log(`  [OK] ${recipe.name}: 약 ${estimatedPrice.toLocaleString()}원 (tier ${tier}, conf ${confidence})`);
     tierCounts[tier as 1 | 2 | 3]++;
-    confidenceSum.push(confidence);
+    prices.push(estimatedPrice);
     updated++;
   }
 
   // 3. 결과 요약
-  const avgConfidence =
-    confidenceSum.length > 0
-      ? (confidenceSum.reduce((a, b) => a + b, 0) / confidenceSum.length).toFixed(2)
-      : '0';
+  const avgPrice =
+    prices.length > 0
+      ? Math.round(prices.reduce((a, b) => a + b, 0) / prices.length)
+      : 0;
 
   console.log(`\n=== 결과 요약 ===`);
   console.log(`업데이트: ${updated}개`);
   console.log(`스킵: ${skipped}개`);
-  console.log(`\nTier 분포:`);
-  console.log(`  $ (저렴):  ${tierCounts[1]}개`);
-  console.log(`  $$ (보통): ${tierCounts[2]}개`);
-  console.log(`  $$$ (고가): ${tierCounts[3]}개`);
-  console.log(`\n평균 confidence: ${avgConfidence}`);
-  console.log(`(confidence >= 0.5인 레시피만 가격 tier가 UI에 표시됩니다)\n`);
+  console.log(`\n가격 분포:`);
+  console.log(`  ~5,000원 (저렴): ${tierCounts[1]}개`);
+  console.log(`  ~10,000원 (보통): ${tierCounts[2]}개`);
+  console.log(`  10,000원~ (고가): ${tierCounts[3]}개`);
+  console.log(`\n평균 예상 가격: 약 ${avgPrice.toLocaleString()}원`);
+  console.log(`(confidence >= 0.5인 레시피만 가격이 UI에 표시됩니다)\n`);
 }
 
 main().catch(console.error);

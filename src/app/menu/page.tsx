@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Dices, Clock, Flame, ArrowLeft, AlertTriangle } from 'lucide-react';
+import { Dices, Clock, Flame, ArrowLeft, AlertTriangle, Coins } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { CONCEPT_TAGS, DAY_LABELS, DIFFICULTY_LABELS, TAG_COLORS } from '@/lib/constants';
@@ -151,20 +151,16 @@ function MenuPage() {
   const selectedTagObjects = CONCEPT_TAGS.filter((t) => tags.includes(t.id));
   const groceryIds = menu.map((d) => d.recipe.id).join(',');
 
-  // Price tier summary
-  const tierSummary = menu.reduce(
-    (acc, d) => {
-      const tier = d.recipe.price_tier;
-      const conf = d.recipe.price_confidence;
-      if (tier && conf && conf >= 0.5) {
-        acc[tier as 1 | 2 | 3]++;
-      } else {
-        acc.unknown++;
-      }
-      return acc;
-    },
-    { 1: 0, 2: 0, 3: 0, unknown: 0 } as Record<1 | 2 | 3 | 'unknown', number>,
-  );
+  // Total estimated price
+  const totalPrice = menu.reduce((sum, d) => {
+    const p = d.recipe.estimated_price;
+    const c = d.recipe.price_confidence;
+    if (p && c && c >= 0.5) return sum + p;
+    return sum;
+  }, 0);
+  const pricedCount = menu.filter(
+    (d) => d.recipe.estimated_price && d.recipe.price_confidence && d.recipe.price_confidence >= 0.5,
+  ).length;
 
   return (
     <div className="mx-auto max-w-5xl px-4 pb-32 pt-8">
@@ -190,27 +186,17 @@ function MenuPage() {
         </div>
       </div>
 
-      {/* Price tier summary */}
-      {!loading && menu.length > 0 && (tierSummary[1] > 0 || tierSummary[2] > 0 || tierSummary[3] > 0) && (
+      {/* Price summary */}
+      {!loading && pricedCount > 0 && totalPrice > 0 && (
         <div className="mb-6 flex items-center gap-3 rounded-xl border border-sotto-200 bg-white px-4 py-3 shadow-card">
-          <span className="text-sm font-medium text-sotto-500">이번 주 가격:</span>
-          <div className="flex items-center gap-2">
-            {tierSummary[1] > 0 && (
-              <span className="rounded-full bg-green-50 px-2 py-0.5 text-xs font-semibold text-green-600 border border-green-200">
-                $ ×{tierSummary[1]}
-              </span>
-            )}
-            {tierSummary[2] > 0 && (
-              <span className="rounded-full bg-sotto-50 px-2 py-0.5 text-xs font-semibold text-sotto-600 border border-sotto-200">
-                $$ ×{tierSummary[2]}
-              </span>
-            )}
-            {tierSummary[3] > 0 && (
-              <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-600 border border-amber-200">
-                $$$ ×{tierSummary[3]}
-              </span>
-            )}
-          </div>
+          <Coins className="h-4 w-4 text-sotto-400" />
+          <span className="text-sm font-medium text-sotto-500">이번 주 예상 재료비:</span>
+          <span className="text-sm font-bold text-sotto-800">
+            약 {totalPrice.toLocaleString()}원
+          </span>
+          {pricedCount < menu.length && (
+            <span className="text-xs text-sotto-400">({pricedCount}/{menu.length}개 기준)</span>
+          )}
         </div>
       )}
 
@@ -316,7 +302,7 @@ function MenuPage() {
                       {/* Tags + Price */}
                       <div className="flex flex-wrap items-center gap-1.5">
                         <PriceBadge
-                          priceTier={recipe.price_tier}
+                          estimatedPrice={recipe.estimated_price}
                           priceConfidence={recipe.price_confidence}
                         />
                         <Badge

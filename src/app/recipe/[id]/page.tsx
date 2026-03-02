@@ -83,7 +83,7 @@ export default async function RecipePage({ params }: { params: Promise<{ id: str
         <h1 className="mb-4 text-2xl font-bold text-sotto-900 sm:text-3xl">{recipe.name}</h1>
         <div className="flex flex-wrap gap-2">
           <PriceBadge
-            priceTier={recipe.price_tier}
+            estimatedPrice={recipe.estimated_price}
             priceConfidence={recipe.price_confidence}
             size="md"
           />
