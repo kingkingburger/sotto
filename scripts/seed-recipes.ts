@@ -19,15 +19,14 @@ if (fs.existsSync(envPath)) {
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SECRET_KEY!;
-const FOODSAFETY_API_KEY = process.env.FOODSAFETY_API_KEY!;
+const FOODSAFETY_API_KEY = process.env.FOODSAFETY_API_KEY || 'sample';
 
 if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
   console.error('Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SECRET_KEY');
   process.exit(1);
 }
-if (!FOODSAFETY_API_KEY) {
-  console.error('Missing FOODSAFETY_API_KEY');
-  process.exit(1);
+if (FOODSAFETY_API_KEY === 'sample') {
+  console.log('No FOODSAFETY_API_KEY found — using "sample" key (paginated, 100/page)');
 }
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
@@ -91,18 +90,33 @@ interface CookrcpResponse {
 }
 
 async function fetchRecipes(): Promise<CookrcpItem[]> {
-  const url = `http://openapi.foodsafetykorea.go.kr/api/${FOODSAFETY_API_KEY}/COOKRCP01/json/1/1000`;
-  console.log(`Fetching recipes from COOKRCP01 API...`);
+  const PAGE_SIZE = FOODSAFETY_API_KEY === 'sample' ? 100 : 1000;
+  const allRows: CookrcpItem[] = [];
+  let start = 1;
 
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`API fetch failed: ${res.status} ${res.statusText}`);
+  console.log(`Fetching recipes from COOKRCP01 API (key: ${FOODSAFETY_API_KEY === 'sample' ? 'sample' : 'custom'}, pageSize: ${PAGE_SIZE})...`);
+
+  while (true) {
+    const end = start + PAGE_SIZE - 1;
+    const url = `http://openapi.foodsafetykorea.go.kr/api/${FOODSAFETY_API_KEY}/COOKRCP01/json/${start}/${end}`;
+    const res = await fetch(url);
+    if (!res.ok) {
+      throw new Error(`API fetch failed: ${res.status} ${res.statusText}`);
+    }
+
+    const json: CookrcpResponse = await res.json();
+    const rows = json.COOKRCP01?.row ?? [];
+    if (rows.length === 0) break;
+
+    allRows.push(...rows);
+    console.log(`  Fetched ${start}-${start + rows.length - 1} (${allRows.length} total)`);
+
+    if (rows.length < PAGE_SIZE) break;
+    start += PAGE_SIZE;
   }
 
-  const json: CookrcpResponse = await res.json();
-  const rows = json.COOKRCP01?.row ?? [];
-  console.log(`Fetched ${rows.length} recipes from API`);
-  return rows;
+  console.log(`Fetched ${allRows.length} recipes from API`);
+  return allRows;
 }
 
 async function seedRecipes(): Promise<void> {
