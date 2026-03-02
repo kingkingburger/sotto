@@ -104,6 +104,10 @@ YOUTUBE_API_KEY=                  # YouTube Data API v3
 - **카드 패턴**: `rounded-2xl border-sotto-200 shadow-sm`
 - **레이아웃**: `max-w-4xl mx-auto px-4`
 
+## 워크플로우 규칙
+
+- 작업 완료 시 자동으로 git commit 수행 (별도 요청 불필요)
+
 ## 코딩 컨벤션
 
 - Server Component 기본, 클라이언트 인터랙션 필요 시 `'use client'`
