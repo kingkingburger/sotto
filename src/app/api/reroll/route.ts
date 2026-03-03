@@ -1,11 +1,9 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import type { ConceptTag, RecipeSummary } from '@/types/recipe';
+import { RECIPE_SUMMARY_FIELDS, RECIPE_SUMMARY_FIELDS_EXTENDED, LUNCHBOX_DISH_TYPES } from '@/lib/constants';
 
 const VALID_TAGS: ConceptTag[] = ['budget', 'taste', 'volume', 'easy', 'nutrition'];
-
-const RECIPE_SUMMARY_FIELDS =
-  'id, name, thumbnail_url, concept_tags, dish_type, difficulty, calories, cooking_time_minutes';
 
 export async function POST(request: Request) {
   let body: unknown;
@@ -55,25 +53,34 @@ export async function POST(request: Request) {
   try {
     const supabase = await createClient();
 
-    // Build base query: lunchbox-friendly, overlapping tags, excluding IDs, random order
-    const buildQuery = (matchDishType?: string) => {
-      let q = supabase
-        .from('recipes')
-        .select(RECIPE_SUMMARY_FIELDS)
-        .eq('is_lunchbox_friendly', true)
-        .overlaps('concept_tags', tags as ConceptTag[]);
+    // Build query with extended fields, fall back to base if columns don't exist
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const buildQuery = async (matchDishType?: string): Promise<{ data: any[] | null; error: any }> => {
+      const applyFilters = (fields: string) => {
+        let q = supabase
+          .from('recipes')
+          .select(fields)
+          .eq('is_lunchbox_friendly', true)
+          .in('dish_type', LUNCHBOX_DISH_TYPES)
+          .overlaps('concept_tags', tags as ConceptTag[]);
 
-      if ((excludeIds as string[]).length > 0) {
-        q = q.not('id', 'in', `(${(excludeIds as string[]).join(',')})`);
+        if ((excludeIds as string[]).length > 0) {
+          q = q.not('id', 'in', `(${(excludeIds as string[]).join(',')})`);
+        }
+
+        if (matchDishType) {
+          q = q.eq('dish_type', matchDishType);
+        }
+
+        q = q.limit(20);
+        return q;
+      };
+
+      const { data, error } = await applyFilters(RECIPE_SUMMARY_FIELDS_EXTENDED);
+      if (error?.code === '42703') {
+        return applyFilters(RECIPE_SUMMARY_FIELDS);
       }
-
-      if (matchDishType) {
-        q = q.eq('dish_type', matchDishType);
-      }
-
-      // Supabase doesn't support ORDER BY random() natively; use limit and shuffle client-side
-      q = q.limit(20);
-      return q;
+      return { data, error };
     };
 
     // Try with dishType first if provided

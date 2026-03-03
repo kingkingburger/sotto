@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Dices, Clock, Flame, ArrowLeft, AlertTriangle } from 'lucide-react';
+import { Dices, Clock, Flame, ArrowLeft, AlertTriangle, Coins } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { CONCEPT_TAGS, DAY_LABELS, DIFFICULTY_LABELS, TAG_COLORS } from '@/lib/constants';
@@ -11,16 +11,20 @@ import type { MealPlan, DayMenu } from '@/types/menu';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
+import { PriceBadge } from '@/components/ui/price-badge';
+import { VideoIndicator } from '@/components/ui/video-indicator';
 
 function MenuCardSkeleton() {
   return (
-    <div className="rounded-2xl border border-sotto-200 bg-white p-4 shadow-sm">
-      <Skeleton className="mb-3 h-40 w-full rounded-xl" />
-      <Skeleton className="mb-2 h-5 w-2/3" />
-      <Skeleton className="mb-3 h-4 w-1/2" />
-      <div className="flex gap-2">
-        <Skeleton className="h-5 w-16 rounded-full" />
-        <Skeleton className="h-5 w-16 rounded-full" />
+    <div className="rounded-2xl border border-sotto-200 bg-white shadow-card">
+      <Skeleton className="h-44 w-full rounded-t-2xl" />
+      <div className="p-4">
+        <Skeleton className="mb-2 h-5 w-2/3" />
+        <Skeleton className="mb-3 h-4 w-1/2" />
+        <div className="flex gap-2">
+          <Skeleton className="h-5 w-16 rounded-full" />
+          <Skeleton className="h-5 w-16 rounded-full" />
+        </div>
       </div>
     </div>
   );
@@ -82,7 +86,6 @@ function MenuPage() {
       setError(null);
       try {
         if (idsParam) {
-          // Reconstruct from stored IDs — fetch recipes directly by ID
           const idList = idsParam.split(',').filter(Boolean);
           const res = await fetch('/api/recommend', {
             method: 'POST',
@@ -148,19 +151,30 @@ function MenuPage() {
   const selectedTagObjects = CONCEPT_TAGS.filter((t) => tags.includes(t.id));
   const groceryIds = menu.map((d) => d.recipe.id).join(',');
 
+  // Total estimated price
+  const totalPrice = menu.reduce((sum, d) => {
+    const p = d.recipe.estimated_price;
+    const c = d.recipe.price_confidence;
+    if (p && c && c >= 0.5) return sum + p;
+    return sum;
+  }, 0);
+  const pricedCount = menu.filter(
+    (d) => d.recipe.estimated_price && d.recipe.price_confidence && d.recipe.price_confidence >= 0.5,
+  ).length;
+
   return (
     <div className="mx-auto max-w-5xl px-4 pb-32 pt-8">
       {/* Header */}
       <div className="mb-8">
         <Link
           href="/select"
-          className="mb-4 inline-flex items-center gap-1.5 text-sm text-sotto-500 hover:text-sotto-700"
+          className="mb-4 inline-flex items-center gap-1.5 text-sm text-sotto-500 transition-colors hover:text-sotto-700"
         >
           <ArrowLeft className="h-4 w-4" />
           다시 선택
         </Link>
         <h1 className="mb-3 text-2xl font-bold text-sotto-800 sm:text-3xl">이번 주 도시락 메뉴</h1>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {selectedTagObjects.map((tag) => (
             <Badge
               key={tag.id}
@@ -171,6 +185,20 @@ function MenuPage() {
           <Badge label={`${days}일치`} />
         </div>
       </div>
+
+      {/* Price summary */}
+      {!loading && pricedCount > 0 && totalPrice > 0 && (
+        <div className="mb-6 flex items-center gap-3 rounded-xl border border-sotto-200 bg-white px-4 py-3 shadow-card">
+          <Coins className="h-4 w-4 text-sotto-400" />
+          <span className="text-sm font-medium text-sotto-500">이번 주 예상 재료비:</span>
+          <span className="text-sm font-bold text-sotto-800">
+            약 {totalPrice.toLocaleString()}원
+          </span>
+          {pricedCount < menu.length && (
+            <span className="text-xs text-sotto-400">({pricedCount}/{menu.length}개 기준)</span>
+          )}
+        </div>
+      )}
 
       {/* Fallback notice */}
       {fallback && !loading && (
@@ -196,20 +224,29 @@ function MenuPage() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {loading
           ? Array.from({ length: days }).map((_, i) => <MenuCardSkeleton key={i} />)
-          : menu.map((dayItem) => {
+          : menu.map((dayItem, index) => {
               const { recipe, day } = dayItem;
               const isRerolling = rerollingDay === day;
 
               return (
                 <div
                   key={day}
-                  className="group relative rounded-2xl border border-sotto-200 bg-white shadow-sm transition-shadow hover:shadow-md"
+                  className="group relative overflow-hidden rounded-2xl border border-sotto-200 bg-white shadow-card transition-all hover:shadow-card-hover hover:-translate-y-0.5 animate-fadeIn opacity-0"
+                  style={{ animationDelay: `${index * 80}ms` }}
                 >
                   {/* Day label */}
                   <div className="absolute left-3 top-3 z-10">
                     <span className="rounded-lg bg-sotto-700/90 px-2.5 py-1 text-xs font-bold text-white backdrop-blur-sm">
                       {DAY_LABELS[day - 1]}
                     </span>
+                  </div>
+
+                  {/* Video indicator */}
+                  <div className="absolute left-3 bottom-[calc(50%+0.75rem)] z-10">
+                    <VideoIndicator
+                      videoId={recipe.youtube_video_id}
+                      onClick={() => router.push(`/recipe/${recipe.id}`)}
+                    />
                   </div>
 
                   {/* Reroll button */}
@@ -224,13 +261,14 @@ function MenuPage() {
 
                   {/* Thumbnail */}
                   <Link href={`/recipe/${recipe.id}`} className="block">
-                    <div className="relative h-44 overflow-hidden rounded-t-2xl bg-sotto-100">
-                      {recipe.thumbnail_url ? (
+                    <div className="relative h-44 overflow-hidden bg-sotto-100">
+                      {(recipe.main_image_url ?? recipe.thumbnail_url) ? (
                         <Image
-                          src={recipe.thumbnail_url}
+                          src={(recipe.main_image_url ?? recipe.thumbnail_url)!}
                           alt={recipe.name}
                           fill
                           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          quality={85}
                           className="object-cover transition-transform duration-300 group-hover:scale-105"
                         />
                       ) : (
@@ -262,8 +300,12 @@ function MenuPage() {
                         )}
                       </div>
 
-                      {/* Tags */}
-                      <div className="flex flex-wrap gap-1.5">
+                      {/* Tags + Price */}
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <PriceBadge
+                          estimatedPrice={recipe.estimated_price}
+                          priceConfidence={recipe.price_confidence}
+                        />
                         <Badge
                           label={DIFFICULTY_LABELS[recipe.difficulty] ?? recipe.difficulty}
                           colorClass="bg-sotto-100 text-sotto-600 border-sotto-200"

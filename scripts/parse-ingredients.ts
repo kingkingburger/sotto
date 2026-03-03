@@ -20,10 +20,10 @@ if (fs.existsSync(envPath)) {
 }
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const SERVICE_ROLE_KEY = process.env.SUPABASE_SECRET_KEY!;
 
 if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
-  console.error('Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY');
+  console.error('Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SECRET_KEY');
   process.exit(1);
 }
 
@@ -55,20 +55,25 @@ async function batchParseIngredients(): Promise<void> {
     return;
   }
 
-  // Find which ones already have parsed ingredients
+  // Find which ones already have parsed ingredients (chunk to avoid URL length limit)
   const candidateIds = candidates.map((r) => r.id);
-  const { data: existingIngRows, error: existingError } = await supabase
-    .from('recipe_ingredients')
-    .select('recipe_id')
-    .in('recipe_id', candidateIds);
+  const alreadyParsedIds = new Set<string>();
+  const CHUNK_SIZE = 100;
+  for (let i = 0; i < candidateIds.length; i += CHUNK_SIZE) {
+    const chunk = candidateIds.slice(i, i + CHUNK_SIZE);
+    const { data: existingIngRows, error: existingError } = await supabase
+      .from('recipe_ingredients')
+      .select('recipe_id')
+      .in('recipe_id', chunk);
 
-  if (existingError) {
-    throw new Error(`Failed to fetch existing ingredients: ${existingError.message}`);
+    if (existingError) {
+      throw new Error(`Failed to fetch existing ingredients: ${existingError.message}`);
+    }
+
+    for (const row of existingIngRows ?? []) {
+      alreadyParsedIds.add((row as { recipe_id: string }).recipe_id);
+    }
   }
-
-  const alreadyParsedIds = new Set(
-    (existingIngRows ?? []).map((row: { recipe_id: string }) => row.recipe_id),
-  );
 
   const toParse = candidates.filter((r) => !alreadyParsedIds.has(r.id));
   console.log(`${toParse.length} recipes need ingredient parsing (${alreadyParsedIds.size} already parsed)`);
