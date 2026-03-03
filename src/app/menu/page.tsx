@@ -231,58 +231,55 @@ function MenuPage() {
               return (
                 <div
                   key={day}
-                  className="group relative overflow-hidden rounded-2xl border border-sotto-200 bg-white shadow-card transition-all hover:shadow-card-hover hover:-translate-y-0.5 animate-fadeIn opacity-0"
+                  className="animate-slideInRight opacity-0"
                   style={{ animationDelay: `${index * 80}ms` }}
                 >
-                  {/* Day label */}
-                  <div className="absolute left-3 top-3 z-10">
-                    <span className="rounded-lg bg-sotto-700/90 px-2.5 py-1 text-xs font-bold text-white backdrop-blur-sm">
-                      {DAY_LABELS[day - 1]}
-                    </span>
-                  </div>
+                  {/* Day label — outside the card */}
+                  <p className="mb-1 text-xs font-semibold text-sotto-500">
+                    Day {day} {DAY_LABELS[day - 1]}
+                  </p>
 
-                  {/* Video indicator */}
-                  <div className="absolute left-3 bottom-[calc(50%+0.75rem)] z-10">
-                    <VideoIndicator
-                      videoId={recipe.youtube_video_id}
-                      onClick={() => router.push(`/recipe/${recipe.id}`)}
-                    />
-                  </div>
-
-                  {/* Reroll button */}
-                  <button
-                    onClick={() => handleReroll(dayItem)}
-                    disabled={isRerolling}
-                    className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-lg bg-white/90 text-sotto-500 shadow-sm backdrop-blur-sm transition-all hover:bg-sotto-100 hover:text-sotto-700 disabled:opacity-50"
-                    title="다시 뽑기"
+                  <div
+                    className={`group relative overflow-hidden rounded-2xl border border-sotto-200 bg-white shadow-card transition-all hover:shadow-card-hover hover:-translate-y-0.5 ${isRerolling ? 'opacity-50 transition-opacity duration-300' : 'opacity-100 transition-opacity duration-300'}`}
                   >
-                    <Dices className={`h-4 w-4 ${isRerolling ? 'animate-spin' : ''}`} />
-                  </button>
-
-                  {/* Thumbnail */}
-                  <Link href={`/recipe/${recipe.id}`} className="block">
-                    <div className="relative h-44 overflow-hidden bg-sotto-100">
-                      {(recipe.main_image_url ?? recipe.thumbnail_url) ? (
-                        <Image
-                          src={(recipe.main_image_url ?? recipe.thumbnail_url)!}
-                          alt={recipe.name}
-                          fill
-                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                          quality={85}
-                          className="object-cover transition-transform duration-300 group-hover:scale-105"
-                        />
-                      ) : (
-                        <div className="flex h-full items-center justify-center text-4xl">
-                          🍱
-                        </div>
-                      )}
-                    </div>
+                    {/* Thumbnail */}
+                    <Link href={`/recipe/${recipe.id}`} className="block">
+                      <div className="relative h-44 overflow-hidden bg-sotto-100">
+                        {(recipe.main_image_url ?? recipe.thumbnail_url) ? (
+                          <Image
+                            src={(recipe.main_image_url ?? recipe.thumbnail_url)!}
+                            alt={recipe.name}
+                            fill
+                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                            quality={85}
+                            className="object-cover transition-transform duration-300 group-hover:scale-105"
+                          />
+                        ) : (
+                          <div className="flex h-full items-center justify-center text-4xl">
+                            🍱
+                          </div>
+                        )}
+                      </div>
+                    </Link>
 
                     {/* Card content */}
                     <div className="p-4">
-                      <h3 className="mb-2 line-clamp-1 text-base font-bold text-sotto-800">
-                        {recipe.name}
-                      </h3>
+                      {/* Title row with reroll button */}
+                      <div className="mb-2 flex items-start justify-between gap-2">
+                        <Link href={`/recipe/${recipe.id}`} className="min-w-0 flex-1">
+                          <h3 className="line-clamp-1 text-base font-bold text-sotto-800">
+                            {recipe.name}
+                          </h3>
+                        </Link>
+                        <button
+                          onClick={() => handleReroll(dayItem)}
+                          disabled={isRerolling}
+                          className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg text-sotto-400 transition-all hover:bg-sotto-100 hover:text-sotto-700 disabled:opacity-50"
+                          title="다시 뽑기"
+                        >
+                          <Dices className={`h-4 w-4 ${isRerolling ? 'animate-spin' : ''}`} />
+                        </button>
+                      </div>
 
                       {/* Meta */}
                       <div className="mb-3 flex items-center gap-3 text-xs text-sotto-500">
@@ -301,7 +298,7 @@ function MenuPage() {
                       </div>
 
                       {/* Tags + Price */}
-                      <div className="flex flex-wrap items-center gap-1.5">
+                      <div className="mb-2 flex flex-wrap items-center gap-1.5">
                         <PriceBadge
                           estimatedPrice={recipe.estimated_price}
                           priceConfidence={recipe.price_confidence}
@@ -318,8 +315,21 @@ function MenuPage() {
                           />
                         ))}
                       </div>
+
+                      {/* Video link */}
+                      {recipe.youtube_video_id && (
+                        <Link
+                          href={`/recipe/${recipe.id}`}
+                          className="inline-flex items-center gap-1 text-xs font-medium text-accent-500 transition-colors hover:text-accent-600"
+                        >
+                          <VideoIndicator
+                            videoId={recipe.youtube_video_id}
+                            onClick={() => router.push(`/recipe/${recipe.id}`)}
+                          />
+                        </Link>
+                      )}
                     </div>
-                  </Link>
+                  </div>
                 </div>
               );
             })}

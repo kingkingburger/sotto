@@ -7,6 +7,21 @@ import type { GroceryResponse, GroceryCategory as GroceryCategoryData } from '@/
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 
+const CATEGORY_EMOJI: Record<string, string> = {
+  vegetable: '🥬',
+  meat: '🥩',
+  seafood: '🐟',
+  dairy: '🥛',
+  grain: '🌾',
+  seasoning: '🧂',
+  sauce: '🫙',
+  noodle: '🍜',
+  tofu: '🫘',
+  egg: '🥚',
+  oil: '🫒',
+  other: '📦',
+};
+
 const STORAGE_KEY_PREFIX = 'sotto-grocery-checked';
 
 function getStorageKey(ids: string): string {
@@ -56,34 +71,37 @@ interface CategorySectionProps {
 }
 
 function CategorySection({ category, checked, onToggle }: CategorySectionProps) {
-  const [open, setOpen] = useState(true);
   const checkedCount = category.items.filter((item) => checked.has(`${category.category}:${item.name}`)).length;
   const allChecked = checkedCount === category.items.length;
+  const [open, setOpen] = useState(!allChecked);
+
+  const emoji = CATEGORY_EMOJI[category.category] ?? '📦';
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-sotto-200 bg-white shadow-card transition-all">
+    <div className={`overflow-hidden rounded-2xl border shadow-card transition-all ${allChecked ? 'border-green-200 bg-green-50' : 'border-sotto-200 bg-white'}`}>
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center justify-between px-5 py-4 text-left transition-colors hover:bg-sotto-50"
+        className={`flex w-full items-center justify-between px-5 py-4 text-left transition-colors ${allChecked ? 'hover:bg-green-100' : 'hover:bg-sotto-50'}`}
       >
         <div className="flex items-center gap-3">
+          <span className="text-lg leading-none">{emoji}</span>
           <span className={`font-semibold ${allChecked ? 'text-sotto-400 line-through' : 'text-sotto-800'}`}>
             {category.categoryLabel}
           </span>
           <span className="rounded-full bg-sotto-100 px-2 py-0.5 text-xs font-medium text-sotto-600">
             {category.items.length}개
           </span>
-          {checkedCount > 0 && (
-            <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
-              {checkedCount} 완료
-            </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className={`text-xs font-medium ${allChecked ? 'text-green-600' : 'text-sotto-500'}`}>
+            {checkedCount}/{category.items.length}
+          </span>
+          {open ? (
+            <ChevronDown className="h-4 w-4 text-sotto-400 transition-transform" />
+          ) : (
+            <ChevronRight className="h-4 w-4 text-sotto-400 transition-transform" />
           )}
         </div>
-        {open ? (
-          <ChevronDown className="h-4 w-4 text-sotto-400 transition-transform" />
-        ) : (
-          <ChevronRight className="h-4 w-4 text-sotto-400 transition-transform" />
-        )}
       </button>
 
       {open && (
@@ -229,6 +247,15 @@ function GroceryPage() {
 
   const totalItems = groceryData?.categories.reduce((sum, cat) => sum + cat.items.length, 0) ?? 0;
   const recipeCount = idsParam.split(',').filter(Boolean).length;
+  const checkedCount = groceryData
+    ? groceryData.categories.reduce(
+        (sum, cat) =>
+          sum + cat.items.filter((item) => checked.has(`${cat.category}:${item.name}`)).length,
+        0
+      )
+    : 0;
+  const progressPercent = totalItems > 0 ? Math.round((checkedCount / totalItems) * 100) : 0;
+  const allDone = totalItems > 0 && checkedCount === totalItems;
 
   return (
     <div className="mx-auto max-w-4xl px-4 pb-24 pt-8">
@@ -253,6 +280,28 @@ function GroceryPage() {
           </div>
         </div>
       </div>
+
+      {/* Overall progress bar */}
+      {!loading && groceryData && groceryData.categories.length > 0 && (
+        <div className="mb-6 rounded-xl border border-sotto-200 bg-white p-4 shadow-card">
+          {allDone && (
+            <div className="mb-2 flex items-center gap-1.5 text-sm font-medium text-green-600">
+              <Check className="h-4 w-4" strokeWidth={2.5} />
+              모두 준비 완료!
+            </div>
+          )}
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium text-sotto-700">진행률</span>
+            <span className="text-sm text-sotto-500">{checkedCount}/{totalItems}개 완료</span>
+          </div>
+          <div className="h-2.5 rounded-full bg-sotto-200 overflow-hidden">
+            <div
+              className="h-full rounded-full bg-accent-500 transition-all duration-300"
+              style={{ width: `${progressPercent}%` }}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Price tier summary */}
       {groceryData && 'priceTierSummary' in groceryData && (groceryData as GroceryResponse & { priceTierSummary?: { tier1: number; tier2: number; tier3: number } }).priceTierSummary && (

@@ -8,6 +8,7 @@ const steps = [
     title: '컨셉 선택',
     description: '원하는 스타일 태그 고르기',
     detail: '가성비, 맛위주, 간편함 등 내 취향에 맞는 태그를 선택하세요.',
+    stripe: 'bg-sotto-300',
   },
   {
     icon: UtensilsCrossed,
@@ -15,6 +16,7 @@ const steps = [
     title: '메뉴 확인',
     description: 'AI가 추천한 주간 메뉴 확인',
     detail: '선택한 태그를 기반으로 하루하루 도시락 메뉴를 추천해 드려요.',
+    stripe: 'bg-sotto-500',
   },
   {
     icon: ShoppingBasket,
@@ -22,6 +24,7 @@ const steps = [
     title: '장보기 목록',
     description: '필요한 재료 한눈에 정리',
     detail: '모든 메뉴의 재료를 카테고리별로 합산해 장보기 목록을 만들어요.',
+    stripe: 'bg-accent-400',
   },
 ];
 
@@ -39,7 +42,9 @@ export default function LandingPage() {
             Sotto
           </h1>
           <p className="mb-3 animate-fadeIn text-xl font-semibold text-sotto-700 opacity-0 animate-delay-200 sm:text-2xl">
-            조용히 준비하는 일주일 도시락
+            <span className="box-decoration-clone rounded-sm bg-gradient-to-r from-accent-400/20 to-accent-400/10 px-1 underline decoration-accent-400 decoration-2 underline-offset-4">
+              조용히 준비하는 일주일 도시락
+            </span>
           </p>
           <p className="mb-10 max-w-md animate-fadeIn text-lg text-sotto-500 opacity-0 animate-delay-300">
             &apos;뭐 싸가지?&apos; 고민, 이제 그만!
@@ -72,22 +77,25 @@ export default function LandingPage() {
         {/* Steps */}
         <section className="py-12">
           <div className="grid gap-6 sm:grid-cols-3">
-            {steps.map(({ icon: Icon, step, title, description, detail }, i) => (
+            {steps.map(({ icon: Icon, step, title, description, detail, stripe }, i) => (
               <div
                 key={step}
-                className="group relative overflow-hidden rounded-2xl border border-sotto-200 bg-white p-6 shadow-card transition-all hover:shadow-card-hover hover:-translate-y-1"
+                className="group relative overflow-hidden rounded-2xl border border-sotto-200 bg-white shadow-card transition-all hover:shadow-card-hover hover:-translate-y-1"
                 style={{ animationDelay: `${i * 100 + 200}ms` }}
               >
-                <div className="absolute -right-4 -top-4 text-8xl font-black text-sotto-50 transition-colors group-hover:text-sotto-100">
-                  {step}
-                </div>
-                <div className="relative">
-                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-sotto-100 to-sotto-200 transition-all group-hover:from-sotto-200 group-hover:to-sotto-300">
-                    <Icon className="h-6 w-6 text-sotto-600" />
+                <div className={`h-1 w-full rounded-t-2xl ${stripe}`} />
+                <div className="p-6">
+                  <div className="absolute -right-4 -top-4 text-8xl font-black text-sotto-50 transition-colors group-hover:text-sotto-100">
+                    {step}
                   </div>
-                  <h3 className="mb-1 text-lg font-bold text-sotto-800">{title}</h3>
-                  <p className="mb-3 text-sm font-medium text-sotto-500">{description}</p>
-                  <p className="text-sm leading-relaxed text-sotto-400">{detail}</p>
+                  <div className="relative">
+                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-sotto-100 to-sotto-200 transition-all group-hover:from-sotto-200 group-hover:to-sotto-300">
+                      <Icon className="h-6 w-6 text-sotto-600" />
+                    </div>
+                    <h3 className="mb-1 text-lg font-bold text-sotto-800">{title}</h3>
+                    <p className="mb-3 text-sm font-medium text-sotto-500">{description}</p>
+                    <p className="text-sm leading-relaxed text-sotto-400">{detail}</p>
+                  </div>
                 </div>
               </div>
             ))}

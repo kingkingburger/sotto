@@ -11,7 +11,7 @@ export function Badge({ label, colorClass, className }: BadgeProps) {
     <span
       className={clsx(
         'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium',
-        colorClass ?? 'bg-sotto-100 text-sotto-700 border-sotto-200',
+        colorClass ?? 'bg-gradient-to-r from-sotto-100 to-sotto-50 text-sotto-700 border-sotto-200',
         className,
       )}
     >

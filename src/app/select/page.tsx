@@ -8,6 +8,24 @@ import type { ConceptTag } from '@/types/recipe';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
+/** 선택 시 카드 배경에 쓸 태그별 연한 컬러 (hex, 알파 인라인 스타일용) */
+const TAG_SELECTED_BG: Record<ConceptTag, string> = {
+  budget: 'rgba(74, 222, 128, 0.12)',
+  taste: 'rgba(249, 115, 22, 0.10)',
+  volume: 'rgba(59, 130, 246, 0.10)',
+  easy: 'rgba(167, 139, 250, 0.12)',
+  nutrition: 'rgba(20, 184, 166, 0.12)',
+};
+
+/** 선택 시 체크 인디케이터 & 테두리에 쓸 태그별 컬러 */
+const TAG_ACCENT_COLOR: Record<ConceptTag, string> = {
+  budget: '#16a34a',
+  taste: '#c2410c',
+  volume: '#1d4ed8',
+  easy: '#7c3aed',
+  nutrition: '#0f766e',
+};
+
 type Period = 5 | 7;
 
 export default function SelectPage() {
@@ -40,29 +58,38 @@ export default function SelectPage() {
 
       {/* Concept Tag Cards */}
       <section className="mb-10">
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {CONCEPT_TAGS.map((tag) => {
             const isSelected = selectedTags.includes(tag.id);
             return (
               <button
                 key={tag.id}
                 onClick={() => toggleTag(tag.id)}
+                style={
+                  isSelected
+                    ? {
+                        backgroundColor: TAG_SELECTED_BG[tag.id],
+                        borderColor: TAG_ACCENT_COLOR[tag.id],
+                      }
+                    : undefined
+                }
                 className={`relative flex flex-col gap-3 rounded-2xl border-2 p-5 text-left transition-all duration-200 ${
                   isSelected
-                    ? 'border-sotto-700 bg-sotto-50 shadow-card-hover scale-[1.02]'
+                    ? 'scale-[1.02] shadow-card-hover'
                     : 'border-sotto-200 bg-white hover:border-sotto-300 hover:shadow-card'
                 }`}
               >
                 {/* Selected indicator */}
                 <div
+                  style={isSelected ? { backgroundColor: TAG_ACCENT_COLOR[tag.id] } : undefined}
                   className={`absolute right-3 top-3 flex h-6 w-6 items-center justify-center rounded-full transition-all duration-200 ${
-                    isSelected ? 'bg-sotto-700 scale-100' : 'scale-0 bg-sotto-200'
+                    isSelected ? 'scale-100' : 'scale-0 bg-sotto-200'
                   }`}
                 >
                   <Check className="h-3.5 w-3.5 text-white" />
                 </div>
 
-                <span className="text-4xl">{tag.emoji}</span>
+                <span className="text-5xl">{tag.emoji}</span>
                 <div>
                   <div className="flex items-center gap-2">
                     <span
@@ -79,36 +106,24 @@ export default function SelectPage() {
         </div>
       </section>
 
-      {/* Period Picker */}
+      {/* Period Picker — Segment Control */}
       <section className="mb-10">
         <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-sotto-800">
           <Calendar className="h-5 w-5 text-sotto-500" />
           며칠치 메뉴를 만들까요?
         </h2>
-        <div className="flex gap-3">
+        <div className="flex rounded-xl border border-sotto-200 bg-sotto-100 p-1">
           {([5, 7] as Period[]).map((days) => (
             <button
               key={days}
               onClick={() => setPeriod(days)}
-              className={`flex flex-1 flex-col items-center rounded-2xl border-2 px-4 py-5 transition-all duration-200 ${
+              className={`flex-1 cursor-pointer rounded-lg py-3 text-center text-sm font-semibold transition-all duration-200 ${
                 period === days
-                  ? 'border-sotto-700 bg-sotto-50 shadow-card-hover scale-[1.02]'
-                  : 'border-sotto-200 bg-white hover:border-sotto-300 hover:shadow-card'
+                  ? 'bg-accent-500 text-white shadow-sm'
+                  : 'bg-transparent text-sotto-500 hover:text-sotto-700'
               }`}
             >
-              <span className="text-2xl font-bold text-sotto-800">{days}일</span>
-              <span className="mt-1 text-sm text-sotto-500">
-                {days === 5 ? '평일' : '한 주'}
-              </span>
-              <div
-                className={`mt-2 overflow-hidden transition-all duration-200 ${
-                  period === days ? 'max-h-6 opacity-100' : 'max-h-0 opacity-0'
-                }`}
-              >
-                <span className="inline-flex items-center rounded-full bg-sotto-700 px-2 py-0.5 text-xs font-medium text-white">
-                  선택됨
-                </span>
-              </div>
+              {days}일
             </button>
           ))}
         </div>

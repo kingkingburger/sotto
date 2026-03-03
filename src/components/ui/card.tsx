@@ -13,7 +13,7 @@ const variantClasses: Record<CardVariant, string> = {
   default: 'rounded-2xl border border-sotto-200 bg-white shadow-card',
   elevated: 'rounded-2xl border border-sotto-200 bg-white shadow-elevated',
   interactive:
-    'rounded-2xl border border-sotto-200 bg-white shadow-card transition-all hover:shadow-card-hover hover:-translate-y-0.5 cursor-pointer',
+    'rounded-2xl border border-sotto-200 bg-white shadow-card transition-all hover:shadow-card-hover hover:-translate-y-0.5 hover:border-sotto-300 transition-colors duration-200 cursor-pointer',
 };
 
 export function Card({ children, variant = 'default', className, onClick }: CardProps) {

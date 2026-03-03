@@ -13,7 +13,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary:
-    'inline-flex items-center justify-center rounded-xl bg-sotto-700 text-white font-semibold transition-colors hover:bg-sotto-600 active:bg-sotto-800 disabled:opacity-50 disabled:cursor-not-allowed',
+    'inline-flex items-center justify-center rounded-xl bg-accent-500 text-white font-semibold transition-all duration-200 hover:bg-accent-600 hover:shadow-accent-glow active:bg-accent-600 disabled:opacity-50 disabled:cursor-not-allowed',
   secondary:
     'inline-flex items-center justify-center rounded-xl border border-sotto-200 bg-white text-sotto-700 font-semibold transition-colors hover:bg-sotto-50 active:bg-sotto-100 disabled:opacity-50 disabled:cursor-not-allowed',
   ghost:
