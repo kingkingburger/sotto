@@ -16,6 +16,7 @@ import type { MealPlan, DayMenu } from '@/types/menu';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
+import { useOnline } from '@/hooks/use-online';
 
 /* ─── Skeleton ─── */
 function MenuCardSkeleton({ index }: { index: number }) {
@@ -220,6 +221,7 @@ export default function HomePage() {
   const router = useRouter();
   const store = useMenuStore();
   const reduceMotion = useReducedMotion();
+  const isOnline = useOnline();
   const cardVariants = getCardVariants(reduceMotion);
   const [loading, setLoading] = useState(true);
   const [rerollingDay, setRerollingDay] = useState<number | null>(null);
@@ -398,6 +400,25 @@ export default function HomePage() {
             )}
           </AnimatePresence>
         </motion.div>
+
+        {/* Offline banner */}
+        <AnimatePresence>
+          {!isOnline && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mb-4 flex items-center gap-2.5 rounded-2xl border border-yellow-200 bg-yellow-50/80 px-4 py-3 backdrop-blur-sm"
+              role="status"
+              aria-live="polite"
+            >
+              <span className="text-base">📡</span>
+              <p className="text-sm font-medium text-yellow-800">
+                오프라인 상태 — 저장된 메뉴를 표시 중이에요
+              </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Price summary */}
         <AnimatePresence>
