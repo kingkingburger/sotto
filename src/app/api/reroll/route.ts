@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import type { ConceptTag, RecipeSummary } from '@/types/recipe';
+import type { RecipeSummary } from '@/types/recipe';
+import { rerollRequestSchema } from '@/lib/schemas';
 import { RECIPE_SUMMARY_FIELDS, RECIPE_SUMMARY_FIELDS_EXTENDED, LUNCHBOX_DISH_TYPES } from '@/lib/constants';
-
-const VALID_TAGS: ConceptTag[] = ['budget', 'taste', 'volume', 'easy', 'nutrition'];
 
 export async function POST(request: Request) {
   let body: unknown;
@@ -13,47 +12,19 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
 
-  const { tags, excludeIds, dishType } = body as {
-    tags?: unknown;
-    excludeIds?: unknown;
-    dishType?: unknown;
-  };
-
-  // Validate tags
-  if (!Array.isArray(tags) || tags.length === 0) {
+  const parsed = rerollRequestSchema.safeParse(body);
+  if (!parsed.success) {
     return NextResponse.json(
-      { error: 'tags must be a non-empty array' },
-      { status: 400 },
-    );
-  }
-  for (const tag of tags) {
-    if (!VALID_TAGS.includes(tag as ConceptTag)) {
-      return NextResponse.json(
-        { error: `Invalid tag: ${tag}. Valid tags are: ${VALID_TAGS.join(', ')}` },
-        { status: 400 },
-      );
-    }
-  }
-
-  // Validate excludeIds
-  if (!Array.isArray(excludeIds) || excludeIds.some((id) => typeof id !== 'string')) {
-    return NextResponse.json(
-      { error: 'excludeIds must be an array of strings' },
+      { error: parsed.error.issues.map((i) => i.message).join(', ') },
       { status: 400 },
     );
   }
 
-  if (dishType !== undefined && dishType !== null && typeof dishType !== 'string') {
-    return NextResponse.json(
-      { error: 'dishType must be a string' },
-      { status: 400 },
-    );
-  }
+  const { tags, excludeIds, dishType } = parsed.data;
 
   try {
     const supabase = await createClient();
 
-    // Build query with extended fields, fall back to base if columns don't exist
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const buildQuery = async (matchDishType?: string): Promise<{ data: any[] | null; error: any }> => {
       const applyFilters = (fields: string) => {
@@ -61,11 +32,15 @@ export async function POST(request: Request) {
           .from('recipes')
           .select(fields)
           .eq('is_lunchbox_friendly', true)
-          .in('dish_type', LUNCHBOX_DISH_TYPES)
-          .overlaps('concept_tags', tags as ConceptTag[]);
+          .in('dish_type', LUNCHBOX_DISH_TYPES);
 
-        if ((excludeIds as string[]).length > 0) {
-          q = q.not('id', 'in', `(${(excludeIds as string[]).join(',')})`);
+        // Only apply tag filter if tags are provided
+        if (tags.length > 0) {
+          q = q.overlaps('concept_tags', tags);
+        }
+
+        if (excludeIds.length > 0) {
+          q = q.not('id', 'in', `(${excludeIds.join(',')})`);
         }
 
         if (matchDishType) {
@@ -83,11 +58,10 @@ export async function POST(request: Request) {
       return { data, error };
     };
 
-    // Try with dishType first if provided
     let recipe: RecipeSummary | null = null;
 
     if (dishType) {
-      const { data, error } = await buildQuery(dishType as string);
+      const { data, error } = await buildQuery(dishType);
       if (error) throw new Error(error.message);
       if (data && data.length > 0) {
         const idx = Math.floor(Math.random() * data.length);
@@ -107,7 +81,7 @@ export async function POST(request: Request) {
 
     if (!recipe) {
       return NextResponse.json(
-        { error: 'No matching recipe found' },
+        { error: '조건에 맞는 레시피를 찾을 수 없어요' },
         { status: 404 },
       );
     }
@@ -116,7 +90,7 @@ export async function POST(request: Request) {
   } catch (err) {
     console.error('[reroll] Error:', err);
     return NextResponse.json(
-      { error: 'Failed to reroll recipe' },
+      { error: '다시 뽑기에 실패했어요' },
       { status: 500 },
     );
   }

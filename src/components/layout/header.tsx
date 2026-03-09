@@ -6,22 +6,18 @@ import { clsx } from 'clsx';
 import { ChefHat, Check } from 'lucide-react';
 
 const STEPS = [
-  { href: '/select', label: '선택', step: 1 },
-  { href: '/menu', label: '메뉴', step: 2 },
-  { href: '/grocery', label: '장보기', step: 3 },
+  { href: '/', label: '메뉴', step: 1 },
+  { href: '/grocery', label: '장보기', step: 2 },
 ] as const;
 
 function getCurrentStep(pathname: string): number {
-  if (pathname.startsWith('/grocery')) return 3;
-  if (pathname.startsWith('/menu')) return 2;
-  if (pathname.startsWith('/select')) return 1;
-  return 0;
+  if (pathname.startsWith('/grocery')) return 2;
+  if (pathname === '/' || pathname.startsWith('/recipe')) return 1;
+  return 1;
 }
 
 function showProgressBar(pathname: string): boolean {
-  if (pathname === '/') return false;
-  if (pathname.startsWith('/recipe')) return false;
-  return getCurrentStep(pathname) > 0;
+  return pathname.startsWith('/grocery');
 }
 
 export function Header() {
