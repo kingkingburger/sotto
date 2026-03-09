@@ -16,7 +16,7 @@ export const rerollRequestSchema = z.object({
 });
 
 export const groceryRequestSchema = z.object({
-  recipeIds: z.array(z.string()).min(1, '레시피를 하나 이상 선택해주세요'),
+  recipeIds: z.array(z.string().uuid()).min(1, '레시피를 하나 이상 선택해주세요'),
 });
 
 export type RecommendInput = z.infer<typeof recommendRequestSchema>;

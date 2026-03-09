@@ -9,6 +9,7 @@ interface MenuState {
   days: 5 | 7;
   fallback: boolean;
   lastUpdated: number | null;
+  _hasHydrated: boolean;
 
   setMenu: (menu: DayMenu[], fallback?: boolean) => void;
   setTags: (tags: ConceptTag[]) => void;
@@ -16,6 +17,7 @@ interface MenuState {
   updateMenuItem: (day: number, menu: DayMenu) => void;
   resetMenu: () => void;
   isExpired: () => boolean;
+  setHasHydrated: (v: boolean) => void;
 }
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
@@ -28,6 +30,7 @@ export const useMenuStore = create<MenuState>()(
       days: 5,
       fallback: false,
       lastUpdated: null,
+      _hasHydrated: false,
 
       setMenu: (menu, fallback = false) =>
         set({ menu, fallback, lastUpdated: Date.now() }),
@@ -44,6 +47,8 @@ export const useMenuStore = create<MenuState>()(
 
       resetMenu: () => set({ menu: [], fallback: false, lastUpdated: null }),
 
+      setHasHydrated: (v) => set({ _hasHydrated: v }),
+
       isExpired: () => {
         const { lastUpdated } = get();
         if (!lastUpdated) return true;
@@ -59,6 +64,9 @@ export const useMenuStore = create<MenuState>()(
         fallback: state.fallback,
         lastUpdated: state.lastUpdated,
       }),
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+      },
     },
   ),
 );

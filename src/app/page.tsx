@@ -240,8 +240,9 @@ export default function HomePage() {
     [],
   );
 
-  // Initial load: use stored menu or fetch new
+  // Initial load: wait for hydration, then use stored menu or fetch new
   useEffect(() => {
+    if (!store._hasHydrated) return;
     if (hasFetched.current) return;
     hasFetched.current = true;
 
@@ -252,7 +253,7 @@ export default function HomePage() {
       fetchMenu(store.tags, store.days);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [store._hasHydrated]);
 
   async function handleRefreshAll() {
     setRefreshing(true);

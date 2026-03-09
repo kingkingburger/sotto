@@ -117,7 +117,7 @@ function CategorySection({ category, checked, onToggle }: CategorySectionProps) 
                     <input
                       type="checkbox"
                       checked={isChecked}
-                      onChange={() => onToggle(key)}
+                      readOnly
                       className="sr-only"
                       aria-label={item.name}
                     />
