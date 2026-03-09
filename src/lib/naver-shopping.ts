@@ -134,8 +134,27 @@ export async function getIngredientPrice(
       };
     }
 
+    // NaN 가드: 유효한 가격이 있는 항목만 필터
+    const validCandidates = candidates.filter((item) => {
+      const p = parseInt(item.lprice, 10);
+      return !Number.isNaN(p) && p > 0;
+    });
+
+    if (validCandidates.length === 0) {
+      return {
+        name: ingredientName,
+        price: null,
+        unit: '',
+        source: 'naver',
+        mallName: null,
+        confidence: 0,
+        rawQuery: query,
+        fetchedAt: new Date().toISOString(),
+      };
+    }
+
     // 최저가 상품 선택
-    const best = candidates.reduce((min, item) => {
+    const best = validCandidates.reduce((min, item) => {
       const price = parseInt(item.lprice, 10);
       const minPrice = parseInt(min.lprice, 10);
       return price < minPrice ? item : min;
@@ -171,18 +190,22 @@ export async function getIngredientPrice(
 
 /**
  * 여러 재료 가격 일괄 조회
- * API 부하 분산을 위해 100ms 간격으로 호출
+ * 5개씩 병렬 호출 + 배치 간 100ms 딜레이로 API 부하 분산
  */
 export async function getIngredientPrices(
   names: string[],
 ): Promise<Map<string, IngredientPriceResult>> {
   const results = new Map<string, IngredientPriceResult>();
+  const BATCH_SIZE = 5;
 
-  for (const name of names) {
-    const result = await getIngredientPrice(name);
-    results.set(name, result);
-    // Rate limiting: 100ms 간격
-    await new Promise((r) => setTimeout(r, 100));
+  for (let i = 0; i < names.length; i += BATCH_SIZE) {
+    const batch = names.slice(i, i + BATCH_SIZE);
+    const batchResults = await Promise.all(batch.map(getIngredientPrice));
+    batch.forEach((name, idx) => results.set(name, batchResults[idx]));
+    // 배치 간 딜레이 (마지막 배치 제외)
+    if (i + BATCH_SIZE < names.length) {
+      await new Promise((r) => setTimeout(r, 100));
+    }
   }
 
   return results;

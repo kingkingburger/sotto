@@ -9,10 +9,6 @@ interface PriceData {
   confidence: number;
 }
 
-interface Props {
-  names: string[];
-}
-
 /**
  * 재료 목록 옆에 가격을 표시하는 Client Component
  * 재료명 목록을 받아 /api/prices로 조회 후 Map 형태로 제공
@@ -21,8 +17,11 @@ export function useIngredientPrices(names: string[]) {
   const [prices, setPrices] = useState<Record<string, PriceData>>({});
   const [loading, setLoading] = useState(true);
 
+  // 배열 참조 안정화 — 문자열 키로 변환하여 무한 루프 방지
+  const namesKey = names.join(',');
+
   useEffect(() => {
-    if (names.length === 0) {
+    if (namesKey.length === 0) {
       setLoading(false);
       return;
     }
@@ -31,8 +30,7 @@ export function useIngredientPrices(names: string[]) {
 
     async function fetchPrices() {
       try {
-        const param = names.join(',');
-        const res = await fetch(`/api/prices?names=${encodeURIComponent(param)}`, {
+        const res = await fetch(`/api/prices?names=${encodeURIComponent(namesKey)}`, {
           signal: controller.signal,
         });
         if (!res.ok) throw new Error('fetch failed');
@@ -49,7 +47,7 @@ export function useIngredientPrices(names: string[]) {
 
     fetchPrices();
     return () => controller.abort();
-  }, [names]);
+  }, [namesKey]);
 
   return { prices, loading };
 }
@@ -66,11 +64,11 @@ export function PriceTag({
 }) {
   if (loading) {
     return (
-      <span className="ml-2 h-4 w-14 animate-pulse rounded bg-sotto-100" />
+      <span className="ml-2 inline-block h-4 w-14 animate-pulse rounded bg-sotto-100" />
     );
   }
 
-  if (!price || price.price === null) return null;
+  if (!price || price.price === null || price.confidence < 0.5) return null;
 
   return (
     <span className="ml-2 shrink-0 text-xs font-medium text-accent-600">
