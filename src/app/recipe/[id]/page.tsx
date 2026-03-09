@@ -2,12 +2,13 @@ import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import { Flame, ChefHat, Lightbulb } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
-import type { Recipe, RecipeStep, RecipeIngredient } from '@/types/recipe';
+import type { Recipe, RecipeStep, RecipeIngredient, ConceptTag } from '@/types/recipe';
 import { CATEGORY_LABELS, CATEGORY_ORDER, DIFFICULTY_LABELS, TAG_COLORS, CONCEPT_TAGS } from '@/lib/constants';
 import { Badge } from '@/components/ui/badge';
 import { PriceBadge } from '@/components/ui/price-badge';
 import { BackButton } from '@/components/back-button';
 import { YouTubeSection } from './youtube-section';
+import { RerollButton } from './reroll-button';
 
 async function fetchRecipeData(id: string) {
   const supabase = await createClient();
@@ -264,6 +265,11 @@ export default async function RecipePage({ params }: { params: Promise<{ id: str
           <p className="text-sm leading-relaxed text-sotto-700">{recipe.tip}</p>
         </div>
       )}
+      <RerollButton
+        recipeId={id}
+        dishType={recipe.dish_type}
+        conceptTags={recipe.concept_tags as ConceptTag[]}
+      />
     </div>
   );
 }

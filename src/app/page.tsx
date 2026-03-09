@@ -15,6 +15,7 @@ import type { MealPlan, DayMenu } from '@/types/menu';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PriceBadge } from '@/components/ui/price-badge';
+import { CoachBanner } from '@/components/ui/coach-banner';
 
 /* ─── Skeleton ─── */
 function MenuCardSkeleton({ index }: { index: number }) {
@@ -152,10 +153,10 @@ function MenuCard({
                       e.stopPropagation();
                       onReroll();
                     }}
-                    className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/80 text-sotto-500 shadow-sm backdrop-blur-sm transition-all hover:bg-white hover:text-sotto-700 hover:scale-110 active:scale-95"
-                    title="다시 뽑기"
+                    className="absolute right-2 top-2 flex h-11 w-11 items-center justify-center rounded-full bg-white/80 text-sotto-500 shadow-sm backdrop-blur-sm transition-all hover:bg-white hover:text-sotto-700 hover:scale-110 active:scale-95"
+                    aria-label="이 메뉴 다시 뽑기"
                   >
-                    <Dices className="h-4 w-4" />
+                    <Dices className="h-5 w-5" />
                   </button>
                 </div>
               </Link>
@@ -321,6 +322,7 @@ export default function HomePage() {
   return (
     <div className="gradient-warm min-h-screen">
       <div className="mx-auto max-w-5xl px-4 pb-32 pt-6">
+        <CoachBanner />
         {/* Header section */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
