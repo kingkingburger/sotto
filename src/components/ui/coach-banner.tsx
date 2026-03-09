@@ -38,7 +38,7 @@ export function CoachBanner() {
           className="mb-4 overflow-hidden"
         >
           <div className="flex items-start gap-3 rounded-2xl border border-sotto-200 bg-gradient-to-br from-sotto-100 to-sotto-500/[0.12] px-4 py-3.5">
-            <span className="mt-0.5 text-[28px] leading-none flex-shrink-0">🍱</span>
+            <span className="mt-0.5 text-3xl leading-none flex-shrink-0">🍱</span>
             <div className="flex-1 text-sm leading-relaxed text-sotto-700">
               <p><strong className="font-semibold text-sotto-900">매주 도시락 메뉴를 추천해드려요.</strong>{' '}카드를 탭하면 레시피를 볼 수 있고, 🎲로 다시 뽑을 수 있어요.</p>
             </div>

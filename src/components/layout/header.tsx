@@ -30,8 +30,7 @@ export function Header() {
       <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-5">
         <Link
           href="/"
-          className="text-xl font-bold tracking-tight text-sotto-800 transition-colors hover:text-sotto-600"
-          style={{ letterSpacing: '-0.5px' }}
+          className="text-xl font-bold tracking-tight-md text-sotto-800 transition-colors hover:text-sotto-600"
         >
           Sotto
         </Link>

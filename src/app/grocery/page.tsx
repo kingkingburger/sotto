@@ -1,12 +1,14 @@
 'use client';
 
 import { Suspense, useEffect, useState, useCallback } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
-import { Copy, Check, ChevronDown, ChevronRight, ShoppingBasket, ArrowLeft, Coins } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
+import { Copy, Check, ChevronDown, ChevronRight, ShoppingBasket, Coins } from 'lucide-react';
 import { toast } from 'sonner';
 import type { GroceryResponse, GroceryCategory as GroceryCategoryData } from '@/types/grocery';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
+import { BackButton } from '@/components/back-button';
 
 const CATEGORY_EMOJI: Record<string, string> = {
   vegetable: '🥬',
@@ -170,7 +172,6 @@ export default function GroceryPageWrapper() {
 
 function GroceryPage() {
   const searchParams = useSearchParams();
-  const router = useRouter();
   const idsParam = searchParams.get('ids') ?? '';
 
   const [groceryData, setGroceryData] = useState<GroceryResponse | null>(null);
@@ -264,13 +265,7 @@ function GroceryPage() {
     <div className="mx-auto max-w-4xl px-4 pb-24 pt-8">
       {/* Header */}
       <div className="mb-8">
-        <button
-          onClick={() => router.back()}
-          className="mb-4 inline-flex items-center gap-1.5 text-sm text-sotto-500 transition-colors hover:text-sotto-700"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          메뉴로 돌아가기
-        </button>
+        <BackButton label="메뉴로 돌아가기" href="/" />
         <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="mb-1 text-2xl font-bold text-sotto-800 sm:text-3xl">장보기 목록</h1>
@@ -348,14 +343,14 @@ function GroceryPage() {
 
       {/* Sticky action bar */}
       {!loading && groceryData && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-sotto-200/60 bg-sotto-50/85 px-5 py-3 backdrop-blur-[20px] backdrop-saturate-[180%]">
+        <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-sotto-200/60 bg-sotto-50/85 px-5 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur-[20px] backdrop-saturate-[180%]">
           <div className="mx-auto flex max-w-4xl items-center justify-between gap-3">
-            <button
-              onClick={() => router.back()}
+            <Link
+              href="/"
               className="text-sm font-medium text-sotto-500 transition-colors hover:text-sotto-700"
             >
               다시 메뉴 보기
-            </button>
+            </Link>
             <Button
               variant={copied ? 'secondary' : 'primary'}
               onClick={handleCopy}

@@ -54,7 +54,7 @@ export function FilterSheet({ tags, days, onApply }: FilterSheetProps) {
       {/* Trigger Button */}
       <button
         onClick={handleOpen}
-        className={`relative flex items-center gap-1.5 rounded-full border px-3.5 py-2 text-sm font-medium transition-all ${
+        className={`relative flex items-center gap-1.5 rounded-xl border px-3.5 py-2 text-sm font-medium transition-all ${
           hasActiveFilters
             ? 'border-accent-300 bg-accent-50 text-accent-700'
             : 'border-sotto-200 bg-white text-sotto-600 hover:border-sotto-300 hover:bg-sotto-50'
@@ -63,7 +63,7 @@ export function FilterSheet({ tags, days, onApply }: FilterSheetProps) {
         <SlidersHorizontal className="h-3.5 w-3.5" />
         필터
         {hasActiveFilters && (
-          <span className="flex h-4.5 w-4.5 items-center justify-center rounded-full bg-accent-500 text-[10px] font-bold text-white">
+          <span className="flex h-4.5 w-4.5 items-center justify-center rounded-full bg-accent-500 text-caption font-bold text-white">
             {tags.length + (days !== 5 ? 1 : 0)}
           </span>
         )}
@@ -102,7 +102,7 @@ export function FilterSheet({ tags, days, onApply }: FilterSheetProps) {
                 <h2 className="text-lg font-bold text-sotto-800">필터</h2>
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-sotto-100 text-sotto-500 transition-colors hover:bg-sotto-200"
+                  className="flex h-11 w-11 items-center justify-center rounded-xl bg-sotto-100 text-sotto-500 transition-colors hover:bg-sotto-200"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -169,7 +169,7 @@ export function FilterSheet({ tags, days, onApply }: FilterSheetProps) {
                   </button>
                   <button
                     onClick={handleApply}
-                    className="flex-1 rounded-xl bg-sotto-700 py-3 text-sm font-semibold text-white transition-all hover:bg-sotto-600 active:bg-sotto-800"
+                    className="flex-1 rounded-xl bg-accent-500 py-3 text-sm font-semibold text-white transition-all hover:bg-accent-600 active:bg-accent-500/90"
                   >
                     적용하기
                   </button>

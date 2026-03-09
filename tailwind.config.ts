@@ -11,6 +11,26 @@ const config: Config = {
       fontFamily: {
         sans: ['Pretendard Variable', 'Pretendard', 'system-ui', 'sans-serif'],
       },
+      // Design tokens — typography scale
+      // caption: 10px (일일 %, 보조 라벨)
+      // label: 11px (뱃지, 태그, 날짜)
+      // body-sm: 13px (메타 정보, 부제)
+      // body: 15px (카드 제목, 본문)
+      // subtitle: 17px (섹션 제목)
+      // title: 26px (페이지 제목)
+      fontSize: {
+        caption: ['10px', { lineHeight: '1.4' }],
+        label: ['11px', { lineHeight: '1.4' }],
+        'body-sm': ['13px', { lineHeight: '1.5' }],
+        body: ['15px', { lineHeight: '1.5' }],
+        subtitle: ['17px', { lineHeight: '1.4', fontWeight: '700' }],
+        title: ['26px', { lineHeight: '1.2', letterSpacing: '-0.8px' }],
+      },
+      letterSpacing: {
+        'tight-sm': '-0.3px',
+        'tight-md': '-0.5px',
+        'tight-lg': '-0.8px',
+      },
       colors: {
         sotto: {
           50: '#faf8f5',

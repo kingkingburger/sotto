@@ -178,7 +178,7 @@ export default async function RecipePage({ params }: { params: Promise<{ id: str
       {/* Ingredients — 컴팩트 리스트 */}
       {ingredients.length > 0 && (
         <div className="mb-8">
-          <h2 className="mb-3 text-[17px] font-bold text-sotto-900">재료</h2>
+          <h2 className="mb-3 text-subtitle font-bold text-sotto-900">재료</h2>
           <div className="space-y-3">
             {orderedCategories.map((cat) => {
               const items = grouped.get(cat) ?? [];
@@ -189,7 +189,7 @@ export default async function RecipePage({ params }: { params: Promise<{ id: str
                 <div key={cat}>
                   <div className="mb-1 flex items-center gap-1.5 border-b border-sotto-200 pb-1.5">
                     <span className={`h-2 w-2 rounded-full ${dotColor}`} />
-                    <h3 className="text-[13px] font-semibold text-sotto-600">{label}</h3>
+                    <h3 className="text-body-sm font-semibold text-sotto-600">{label}</h3>
                   </div>
                   {items.map((ing) => (
                     <div
@@ -204,7 +204,7 @@ export default async function RecipePage({ params }: { params: Promise<{ id: str
                         )}
                       </span>
                       {ing.amount && (
-                        <span className="min-w-[60px] text-right text-[13px] text-sotto-600">{ing.amount}</span>
+                        <span className="min-w-[60px] text-right text-body-sm text-sotto-600">{ing.amount}</span>
                       )}
                     </div>
                   ))}
@@ -221,12 +221,12 @@ export default async function RecipePage({ params }: { params: Promise<{ id: str
       {/* Steps — 타임라인 형태 */}
       {steps.length > 0 && (
         <div className="mb-8">
-          <h2 className="mb-5 text-[17px] font-bold text-sotto-900">조리 순서</h2>
+          <h2 className="mb-5 text-subtitle font-bold text-sotto-900">조리 순서</h2>
           <div className="relative pl-10">
             <div className="absolute bottom-0 left-3.5 top-0 w-0.5 bg-sotto-200" />
             {steps.map((step, i) => (
               <div key={step.id} className={`relative ${i < steps.length - 1 ? 'mb-6' : ''}`}>
-                <div className="absolute -left-10 flex h-7 w-7 items-center justify-center rounded-full bg-sotto-800 text-[13px] font-bold text-sotto-50">
+                <div className="absolute -left-10 flex h-7 w-7 items-center justify-center rounded-full bg-sotto-800 text-body-sm font-bold text-sotto-50">
                   {step.step_number}
                 </div>
                 <div>
@@ -274,13 +274,13 @@ export default async function RecipePage({ params }: { params: Promise<{ id: str
                 <div key={label} className="flex flex-col items-center rounded-xl bg-sotto-50 px-2 py-3">
                   <span className="text-lg font-bold text-sotto-800">
                     {value}
-                    <span className="ml-0.5 text-[11px] font-normal text-sotto-500">{unit}</span>
+                    <span className="ml-0.5 text-label font-normal text-sotto-500">{unit}</span>
                   </span>
-                  <span className="mt-0.5 text-[11px] text-sotto-500">{label}</span>
+                  <span className="mt-0.5 text-label text-sotto-500">{label}</span>
                   <div className="mt-1.5 h-1 w-full rounded-full bg-sotto-200">
                     <div className="h-full rounded-full bg-accent-400" style={{ width: `${pct}%` }} />
                   </div>
-                  <p className="mt-0.5 text-[10px] text-sotto-400">일일 {pct}%</p>
+                  <p className="mt-0.5 text-caption text-sotto-400">일일 {pct}%</p>
                 </div>
               );
             })}

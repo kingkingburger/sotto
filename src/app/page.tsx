@@ -142,13 +142,13 @@ function MenuCard({
                   )}
 
                   {/* Day label overlay */}
-                  <span className="absolute left-2 top-2 rounded-full bg-sotto-50/90 px-2.5 py-0.5 text-[11px] font-semibold text-sotto-700 backdrop-blur-sm">
+                  <span className="absolute left-2 top-2 rounded-full bg-sotto-50/90 px-2.5 py-0.5 text-label font-semibold text-sotto-700 backdrop-blur-sm">
                     {DAY_LABELS[day - 1]}
                   </span>
 
                   {/* YouTube overlay */}
                   {recipe.youtube_video_id && (
-                    <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-red-600/90 px-2 py-0.5 text-[11px] font-semibold text-white backdrop-blur-sm">
+                    <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-red-600/90 px-2 py-0.5 text-label font-semibold text-white backdrop-blur-sm">
                       <Play className="h-3 w-3 fill-current" />
                       영상
                     </span>
@@ -158,7 +158,7 @@ function MenuCard({
 
               {/* Content */}
               <Link href={`/recipe/${recipe.id}`} className="block px-3.5 pb-3.5 pt-3">
-                <h3 className="mb-1.5 line-clamp-1 text-[15px] font-semibold text-sotto-900" style={{ letterSpacing: '-0.3px' }}>
+                <h3 className="mb-1.5 line-clamp-1 text-body font-semibold tracking-tight-sm text-sotto-900">
                   {recipe.name}
                 </h3>
 
@@ -202,7 +202,7 @@ function MenuCard({
                   e.stopPropagation();
                   onReroll();
                 }}
-                className="absolute bottom-3 right-3 flex h-11 w-11 items-center justify-center rounded-full bg-sotto-100 text-sotto-700 transition-all hover:bg-sotto-200 active:rotate-180 active:scale-90"
+                className="absolute bottom-3 right-3 flex h-11 w-11 items-center justify-center rounded-xl bg-sotto-100 text-sotto-700 transition-all hover:bg-sotto-200 active:rotate-180 active:scale-90"
                 aria-label="이 메뉴 다시 뽑기"
               >
                 <Dices className="h-[18px] w-[18px]" />
@@ -340,10 +340,10 @@ export default function HomePage() {
         >
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-[26px] font-bold text-sotto-900" style={{ letterSpacing: '-0.8px' }}>
+              <h1 className="text-title font-bold text-sotto-900">
                 이번 주 도시락
               </h1>
-              <p className="mt-0.5 text-[13px] font-medium text-sotto-600">
+              <p className="mt-0.5 text-body-sm font-medium text-sotto-600">
                 {store.days}일치 메뉴가 준비됐어요
               </p>
             </div>
@@ -408,13 +408,13 @@ export default function HomePage() {
               exit={{ opacity: 0, y: -10 }}
               className="mb-5 flex items-center justify-between rounded-2xl border border-sotto-200 bg-gradient-to-br from-sotto-500/[0.08] to-sotto-500/[0.04] px-4 py-3.5"
             >
-              <span className="text-[13px] font-medium text-sotto-600">이번 주 예상 재료비</span>
+              <span className="text-body-sm font-medium text-sotto-600">이번 주 예상 재료비</span>
               <div className="text-right">
                 <span className="text-lg font-bold text-sotto-800">
                   ~{totalPrice.toLocaleString()}원
                 </span>
                 {pricedCount < store.menu.length && (
-                  <span className="ml-1.5 text-[11px] text-sotto-500">
+                  <span className="ml-1.5 text-label text-sotto-500">
                     ({pricedCount}/{store.menu.length}개 기준)
                   </span>
                 )}
@@ -494,14 +494,13 @@ export default function HomePage() {
               transition={{ type: 'spring', stiffness: 300, damping: 30, delay: 0.3 }}
               className="fixed bottom-0 left-0 right-0 z-40"
             >
-              <div className="border-t border-sotto-200/60 bg-sotto-50/85 px-5 py-3 backdrop-blur-[20px] backdrop-saturate-[180%]">
+              <div className="border-t border-sotto-200/60 bg-sotto-50/85 px-5 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur-[20px] backdrop-saturate-[180%]">
                 <div className="mx-auto max-w-5xl">
                   <motion.button
                     whileHover={{ scale: 1.01 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => router.push(`/grocery?ids=${groceryIds}`)}
                     className="flex w-full items-center justify-center gap-2 rounded-2xl bg-sotto-800 px-6 py-4 text-base font-semibold text-sotto-50 shadow-lg transition-colors hover:bg-sotto-900 active:scale-[0.98]"
-                    style={{ letterSpacing: '-0.3px' }}
                   >
                     <ShoppingBasket className="h-5 w-5" />
                     장보기 목록 보기

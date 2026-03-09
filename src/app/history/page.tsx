@@ -30,14 +30,14 @@ function HistoryCard({ dayItem }: { dayItem: DayMenu }) {
               className="object-cover"
             />
           ) : (
-            <div className="flex h-full items-center justify-center text-[32px]">🍱</div>
+            <div className="flex h-full items-center justify-center text-3xl">🍱</div>
           )}
         </div>
         <div className="px-2.5 py-2">
           <p className="truncate text-xs font-semibold text-sotto-800">
             {recipe.name}
           </p>
-          <p className="mt-0.5 text-[11px] text-sotto-500">{DAY_LABELS[day - 1]}</p>
+          <p className="mt-0.5 text-label text-sotto-500">{DAY_LABELS[day - 1]}</p>
         </div>
       </motion.div>
     </Link>
@@ -53,7 +53,7 @@ function WeekSection({ week, index }: { week: WeeklyHistory; index: number }) {
       className="mb-6"
     >
       <div className="mb-2.5 flex items-center justify-between">
-        <h3 className="text-[15px] font-bold text-sotto-900">{formatWeekLabel(week.weekStart)}</h3>
+        <h3 className="text-body font-bold text-sotto-900">{formatWeekLabel(week.weekStart)}</h3>
         <span className="text-xs text-sotto-500">
           {formatDateRange(week.weekStart, week.weekEnd)}
         </span>
@@ -114,7 +114,7 @@ export default function HistoryPage() {
           <p className="mb-6 text-sm text-sotto-500">메뉴를 추천받으면 자동으로 저장돼요</p>
           <Link
             href="/"
-            className="inline-flex items-center gap-2 rounded-xl bg-sotto-700 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-sotto-600"
+            className="inline-flex items-center gap-2 rounded-xl bg-accent-500 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-accent-600"
           >
             메뉴 추천받기
           </Link>
