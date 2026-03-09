@@ -15,7 +15,6 @@ import type { ConceptTag } from '@/types/recipe';
 import type { MealPlan, DayMenu } from '@/types/menu';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { CoachBanner } from '@/components/ui/coach-banner';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
 
 /* ─── Skeleton ─── */
@@ -332,7 +331,6 @@ export default function HomePage() {
   return (
     <div className="gradient-warm min-h-screen">
       <div className="mx-auto max-w-5xl px-4 pb-32 pt-6">
-        <CoachBanner />
         {/* Header section */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}

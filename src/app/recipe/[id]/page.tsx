@@ -42,7 +42,7 @@ const DAILY_REFERENCE = {
   carbs: 300,
 };
 
-// 카테고리별 왼쪽 보더 색상
+// 카테고리별 색상
 const CATEGORY_BORDER_COLORS: Record<string, string> = {
   vegetable: 'border-green-400',
   meat: 'border-red-400',
@@ -56,6 +56,36 @@ const CATEGORY_BORDER_COLORS: Record<string, string> = {
   egg: 'border-yellow-300',
   oil: 'border-emerald-400',
   other: 'border-sotto-300',
+};
+
+const CATEGORY_DOT_COLORS: Record<string, string> = {
+  vegetable: 'bg-green-400',
+  meat: 'bg-red-400',
+  seafood: 'bg-blue-400',
+  dairy: 'bg-amber-300',
+  grain: 'bg-yellow-400',
+  seasoning: 'bg-orange-400',
+  sauce: 'bg-rose-400',
+  noodle: 'bg-purple-400',
+  tofu: 'bg-lime-400',
+  egg: 'bg-yellow-300',
+  oil: 'bg-emerald-400',
+  other: 'bg-sotto-300',
+};
+
+const INGREDIENT_EMOJI: Record<string, string> = {
+  vegetable: '🥬',
+  meat: '🥩',
+  seafood: '🐟',
+  dairy: '🥛',
+  grain: '🌾',
+  seasoning: '🧂',
+  sauce: '🫙',
+  noodle: '🍜',
+  tofu: '🫘',
+  egg: '🥚',
+  oil: '🫒',
+  other: '📦',
 };
 
 export default async function RecipePage({ params }: { params: Promise<{ id: string }> }) {
@@ -153,18 +183,20 @@ export default async function RecipePage({ params }: { params: Promise<{ id: str
             {orderedCategories.map((cat) => {
               const items = grouped.get(cat) ?? [];
               const label = CATEGORY_LABELS[cat as keyof typeof CATEGORY_LABELS] ?? cat;
-              const borderColor = CATEGORY_BORDER_COLORS[cat] ?? 'border-sotto-300';
+              const dotColor = CATEGORY_DOT_COLORS[cat] ?? 'bg-sotto-300';
+              const emoji = INGREDIENT_EMOJI[cat] ?? '📦';
               return (
                 <div key={cat}>
                   <div className="mb-1 flex items-center gap-1.5 border-b border-sotto-200 pb-1.5">
-                    <span className={`h-2 w-2 rounded-full ${borderColor.replace('border-', 'bg-')}`} />
+                    <span className={`h-2 w-2 rounded-full ${dotColor}`} />
                     <h3 className="text-[13px] font-semibold text-sotto-600">{label}</h3>
                   </div>
                   {items.map((ing) => (
                     <div
                       key={ing.id}
-                      className={`flex items-center border-b border-sotto-200/40 py-2.5 text-sm ${ing.is_optional ? 'opacity-60' : ''}`}
+                      className={`flex items-center border-b border-sotto-200/40 py-2 text-sm ${ing.is_optional ? 'opacity-60' : ''}`}
                     >
+                      <span className="mr-2.5 text-base leading-none">{emoji}</span>
                       <span className={`flex-1 text-sotto-800 ${ing.is_optional ? 'italic' : ''}`}>
                         {ing.name}
                         {ing.is_optional && (
