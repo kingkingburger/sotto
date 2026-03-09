@@ -6,7 +6,7 @@
 
 ---
 
-## 현재 상태 (Phase 1 완료)
+## 현재 상태 (Phase 1 + 네이버 쇼핑 통합 완료)
 
 | 항목 | 상태 | 파일 |
 |------|------|------|
@@ -17,8 +17,12 @@
 | 주간 예상 재료비 | ✅ | `src/app/page.tsx` |
 | 레시피 상세 가격 | ✅ | `src/app/recipe/[id]/page.tsx` |
 | 장보기 가격 요약 | ⚠️ | API 반환 됨, UI 미완성 |
-| 재료별 개별 가격 | ❌ | amount만 표시, price 없음 |
-| 실시간 API 연동 | ❌ | 미구현 |
+| 네이버 쇼핑 API 클라이언트 | ✅ | `src/lib/naver-shopping.ts` |
+| 가격 조회 API (/api/prices) | ✅ | `src/app/api/prices/route.ts` (네이버 기반) |
+| 레시피 재료별 실시간 가격 | ✅ | `src/app/recipe/[id]/ingredients-section.tsx` + `ingredient-prices.tsx` |
+| 테스트 스크립트 | ✅ | `scripts/test-naver-price.ts` (15/15 커버리지) |
+| KAMIS/참가격 API 연동 | ❌ | API 키 미발급, 클라이언트 미구현 |
+| 통합 가격 서비스 | ❌ | 네이버 단독 → KAMIS+참가격 하이브리드 전환 필요 |
 | 시계열/트렌드 | ❌ | 미구현 |
 
 ---
@@ -45,6 +49,18 @@
 | `src/app/page.tsx` | 주간 요약에 트렌드 추가 |
 | `src/lib/grocery.ts` | 가격 데이터 합산 로직 |
 | `src/types/grocery.ts` | GroceryItem에 price 필드 추가 |
+
+### 이미 구현됨 (네이버 쇼핑 API 중간 단계)
+| 파일 | 설명 |
+|------|------|
+| `src/lib/naver-shopping.ts` | 네이버 쇼핑 API 클라이언트 (식품 카테고리 필터, 100ms 레이트리밋) |
+| `src/app/api/prices/route.ts` | GET 재료 가격 조회 API (네이버 기반, 1h 캐시) |
+| `src/app/recipe/[id]/ingredient-prices.tsx` | `useIngredientPrices` 훅 + `PriceTag` 컴포넌트 |
+| `src/app/recipe/[id]/ingredients-section.tsx` | Client Component — 카테고리별 재료 + 가격 표시 |
+| `scripts/test-naver-price.ts` | API 테스트 스크립트 (15개 재료 100% 커버리지) |
+
+> **Note**: Step 7의 `/api/prices`는 현재 네이버 쇼핑 기반으로 동작 중.
+> Phase 2에서 KAMIS+참가격 통합 시 이 라우트를 `price-service.ts`로 교체 예정.
 
 ### 패키지 추가 없음
 기존 의존성으로 충분 (fetch API, Supabase client)
@@ -247,41 +263,48 @@ supabase db push
 
 ---
 
-### Step 7: 가격 조회 API
+### Step 7: 가격 조회 API ✅ (네이버 기반 구현 완료)
 
-**7.1 `src/app/api/prices/route.ts`**
+> **현재 상태**: 네이버 쇼핑 API 기반으로 동작 중. KAMIS+참가격 통합 시 price-service.ts로 교체 예정.
+
+**7.1 `src/app/api/prices/route.ts`** — 이미 구현됨
 
 ```
 GET /api/prices?names=돼지고기,양파,간장
 
-응답:
+현재 응답 (네이버 기반):
 {
   "prices": {
-    "돼지고기": {
-      "price": 1850,
-      "unit": "100g",
-      "source": "kamis",
-      "fetchedAt": "2026-03-09",
-      "trend": { "direction": "down", "changePercent": -3.2 }
-    },
-    "양파": { ... },
-    "간장": { ... }
+    "돼지고기": { "price": 1850, "unit": "1개/1팩", "mallName": "쿠팡", "confidence": 0.8 }
   }
 }
 
-Zod 검증: names는 콤마 구분 문자열, 최대 50개
-캐싱: Cache-Control: public, max-age=3600 (1시간)
+향후 응답 (KAMIS+참가격 통합 후):
+{
+  "prices": {
+    "돼지고기": {
+      "price": 1850, "unit": "100g", "source": "kamis",
+      "fetchedAt": "2026-03-09",
+      "trend": { "direction": "down", "changePercent": -3.2 }
+    }
+  }
+}
+
+현재: 최대 30개, s-maxage=3600 (1시간)
+향후: Zod 검증 추가, 최대 50개, source/trend 필드 추가
 ```
 
 ---
 
-### Step 8: UI 업데이트 — 재료별 가격
+### Step 8: UI 업데이트 — 재료별 가격 (⚠️ 부분 완료)
 
-**8.1 `src/app/recipe/[id]/page.tsx`**
+> **현재 상태**: 재료별 가격 표시 완료 (네이버 기반). 트렌드(↑↓→) 미구현.
+
+**8.1 `src/app/recipe/[id]/ingredients-section.tsx`** — 가격 표시 구현됨
 
 ```
-현재: 재료명 + amount만 표시
-변경: 재료명 + amount + 가격 + 트렌드
+구현됨: 재료명 + amount + 가격 (~N원) + 총 예상 가격
+미구현: 트렌드 인디케이터 (↑↓→) — KAMIS 시계열 데이터 필요
 
 레이아웃:
 ┌─────────────────────────────────────┐
