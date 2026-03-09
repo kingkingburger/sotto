@@ -3,12 +3,13 @@ import Image from 'next/image';
 import { Flame, ChefHat, Lightbulb } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import type { Recipe, RecipeStep, RecipeIngredient, ConceptTag } from '@/types/recipe';
-import { CATEGORY_LABELS, CATEGORY_ORDER, DIFFICULTY_LABELS, TAG_COLORS, CONCEPT_TAGS } from '@/lib/constants';
+import { DIFFICULTY_LABELS, TAG_COLORS, CONCEPT_TAGS } from '@/lib/constants';
 import { Badge } from '@/components/ui/badge';
 import { PriceBadge } from '@/components/ui/price-badge';
 import { BackButton } from '@/components/back-button';
 import { YouTubeSection } from './youtube-section';
 import { RerollButton } from './reroll-button';
+import { IngredientsSection } from './ingredients-section';
 
 async function fetchRecipeData(id: string) {
   const supabase = await createClient();
@@ -42,71 +43,12 @@ const DAILY_REFERENCE = {
   carbs: 300,
 };
 
-// 카테고리별 색상
-const CATEGORY_BORDER_COLORS: Record<string, string> = {
-  vegetable: 'border-green-400',
-  meat: 'border-red-400',
-  seafood: 'border-blue-400',
-  dairy: 'border-amber-300',
-  grain: 'border-yellow-400',
-  seasoning: 'border-orange-400',
-  sauce: 'border-rose-400',
-  noodle: 'border-purple-400',
-  tofu: 'border-lime-400',
-  egg: 'border-yellow-300',
-  oil: 'border-emerald-400',
-  other: 'border-sotto-300',
-};
-
-const CATEGORY_DOT_COLORS: Record<string, string> = {
-  vegetable: 'bg-green-400',
-  meat: 'bg-red-400',
-  seafood: 'bg-blue-400',
-  dairy: 'bg-amber-300',
-  grain: 'bg-yellow-400',
-  seasoning: 'bg-orange-400',
-  sauce: 'bg-rose-400',
-  noodle: 'bg-purple-400',
-  tofu: 'bg-lime-400',
-  egg: 'bg-yellow-300',
-  oil: 'bg-emerald-400',
-  other: 'bg-sotto-300',
-};
-
-const INGREDIENT_EMOJI: Record<string, string> = {
-  vegetable: '🥬',
-  meat: '🥩',
-  seafood: '🐟',
-  dairy: '🥛',
-  grain: '🌾',
-  seasoning: '🧂',
-  sauce: '🫙',
-  noodle: '🍜',
-  tofu: '🫘',
-  egg: '🥚',
-  oil: '🫒',
-  other: '📦',
-};
 
 export default async function RecipePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const { recipe, steps, ingredients } = await fetchRecipeData(id);
 
   if (!recipe) notFound();
-
-  // Group ingredients by category
-  const grouped = new Map<string, RecipeIngredient[]>();
-  for (const ing of ingredients) {
-    const cat = ing.category ?? 'other';
-    const existing = grouped.get(cat) ?? [];
-    existing.push(ing);
-    grouped.set(cat, existing);
-  }
-
-  const orderedCategories = [
-    ...CATEGORY_ORDER.filter((cat) => grouped.has(cat)),
-    ...Array.from(grouped.keys()).filter((cat) => !CATEGORY_ORDER.includes(cat as typeof CATEGORY_ORDER[number])),
-  ];
 
   const heroImage = recipe.main_image_url ?? recipe.thumbnail_url;
 
@@ -175,45 +117,8 @@ export default async function RecipePage({ params }: { params: Promise<{ id: str
         </div>
       </div>
 
-      {/* Ingredients — 컴팩트 리스트 */}
-      {ingredients.length > 0 && (
-        <div className="mb-8">
-          <h2 className="mb-3 text-subtitle font-bold text-sotto-900">재료</h2>
-          <div className="space-y-3">
-            {orderedCategories.map((cat) => {
-              const items = grouped.get(cat) ?? [];
-              const label = CATEGORY_LABELS[cat as keyof typeof CATEGORY_LABELS] ?? cat;
-              const dotColor = CATEGORY_DOT_COLORS[cat] ?? 'bg-sotto-300';
-              const emoji = INGREDIENT_EMOJI[cat] ?? '📦';
-              return (
-                <div key={cat}>
-                  <div className="mb-1 flex items-center gap-1.5 border-b border-sotto-200 pb-1.5">
-                    <span className={`h-2 w-2 rounded-full ${dotColor}`} />
-                    <h3 className="text-body-sm font-semibold text-sotto-600">{label}</h3>
-                  </div>
-                  {items.map((ing) => (
-                    <div
-                      key={ing.id}
-                      className={`flex items-center border-b border-sotto-200/40 py-2 text-sm ${ing.is_optional ? 'opacity-60' : ''}`}
-                    >
-                      <span className="mr-2.5 text-base leading-none">{emoji}</span>
-                      <span className={`flex-1 text-sotto-800 ${ing.is_optional ? 'italic' : ''}`}>
-                        {ing.name}
-                        {ing.is_optional && (
-                          <span className="ml-1 text-xs text-sotto-400">(선택)</span>
-                        )}
-                      </span>
-                      {ing.amount && (
-                        <span className="min-w-[60px] text-right text-body-sm text-sotto-600">{ing.amount}</span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
+      {/* Ingredients — 가격 포함 */}
+      <IngredientsSection ingredients={ingredients} />
 
       {/* YouTube */}
       <YouTubeSection recipeId={id} existingVideoId={recipe.youtube_video_id} />
