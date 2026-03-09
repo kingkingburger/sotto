@@ -94,6 +94,7 @@ function MenuCard({
       initial="hidden"
       animate="visible"
       exit="exit"
+      data-testid="menu-card"
     >
       <motion.div
         className="group relative overflow-hidden rounded-[20px] border border-sotto-200 bg-white shadow-card transition-all hover:shadow-card-hover"

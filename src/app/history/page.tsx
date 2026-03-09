@@ -51,6 +51,7 @@ function WeekSection({ week, index }: { week: WeeklyHistory; index: number }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.1 }}
       className="mb-6"
+      data-testid="history-week-card"
     >
       <div className="mb-2.5 flex items-center justify-between">
         <h3 className="text-body font-bold text-sotto-900">{formatWeekLabel(week.weekStart)}</h3>
