@@ -3,11 +3,12 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Dices, Clock, Flame, RefreshCw, ShoppingBasket, Coins, AlertTriangle, Play } from 'lucide-react';
+import { Dices, Clock, Flame, RefreshCw, ShoppingBasket, Coins, AlertTriangle, Play, History } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { useMenuStore } from '@/lib/store';
+import { saveCurrentMenu } from '@/lib/history';
 import { CONCEPT_TAGS, DAY_LABELS, DIFFICULTY_LABELS, TAG_COLORS } from '@/lib/constants';
 import { FilterSheet } from '@/components/ui/filter-sheet';
 import type { ConceptTag } from '@/types/recipe';
@@ -231,6 +232,7 @@ export default function HomePage() {
         if (!res.ok) throw new Error('추천 불러오기 실패');
         const data: MealPlan = await res.json();
         store.setMenu(data.menu, data.fallback);
+        saveCurrentMenu(data.menu);
       } catch (err) {
         toast.error(err instanceof Error ? err.message : '메뉴를 불러오지 못했어요');
       } finally {
@@ -267,6 +269,7 @@ export default function HomePage() {
       if (!res.ok) throw new Error('새 메뉴 불러오기 실패');
       const data: MealPlan = await res.json();
       store.setMenu(data.menu, data.fallback);
+      saveCurrentMenu(data.menu);
       toast.success('새로운 메뉴가 준비됐어요!');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : '새 메뉴를 불러오지 못했어요');
@@ -341,6 +344,13 @@ export default function HomePage() {
             </div>
 
             <div className="flex items-center gap-2">
+              <Link
+                href="/history"
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-sotto-200 bg-white text-sotto-500 shadow-sm transition-colors hover:border-sotto-300 hover:bg-sotto-50 hover:text-sotto-700"
+                title="지난 메뉴"
+              >
+                <History className="h-4 w-4" />
+              </Link>
               <FilterSheet
                 tags={store.tags}
                 days={store.days}
@@ -430,6 +440,8 @@ export default function HomePage() {
             ? Array.from({ length: store.days }).map((_, i) => (
                 <MenuCardSkeleton key={i} index={i} />
               ))
+            : store.menu.length === 0
+            ? null
             : store.menu.map((dayItem, index) => (
                 <MenuCard
                   key={dayItem.day}
@@ -440,6 +452,30 @@ export default function HomePage() {
                 />
               ))}
         </div>
+
+        {/* Empty State */}
+        {!loading && store.menu.length === 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="py-16 text-center"
+          >
+            <div className="mx-auto mb-4 text-5xl">🍽️</div>
+            <h3 className="mb-2 text-lg font-semibold text-sotto-700">
+              조건에 맞는 메뉴가 없어요
+            </h3>
+            <p className="mb-6 text-sm text-sotto-500">
+              필터를 줄이거나 초기화해 보세요
+            </p>
+            <button
+              onClick={handleRefreshAll}
+              className="inline-flex items-center gap-2 rounded-xl bg-sotto-700 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-sotto-600"
+            >
+              <RefreshCw className="h-4 w-4" />
+              필터 없이 새로 추천받기
+            </button>
+          </motion.div>
+        )}
 
         {/* Sticky bottom bar */}
         <AnimatePresence>
