@@ -35,11 +35,15 @@ src/
 │   ├── select/page.tsx     # 태그/기간 선택 (/select) — Client
 │   ├── menu/page.tsx       # 주간 메뉴 그리드 (/menu) — Client
 │   ├── grocery/page.tsx    # 장보기 목록 (/grocery) — Client
-│   ├── recipe/[id]/        # 레시피 상세 (/recipe/:id) — Server
+│   ├── recipe/[id]/        # 레시피 상세 (/recipe/:id)
+│   │   ├── page.tsx        # Server Component
+│   │   ├── ingredients-section.tsx  # 재료 + 가격 — Client
+│   │   └── ingredient-prices.tsx    # useIngredientPrices 훅 + PriceTag — Client
 │   └── api/
 │       ├── recommend/      # POST 주간 메뉴 추천
 │       ├── reroll/         # POST 단일 메뉴 재뽑기
 │       ├── grocery/        # POST 장보기 목록 생성
+│       ├── prices/         # GET 재료 가격 조회 (네이버 쇼핑)
 │       └── youtube/        # GET 레시피 YouTube 영상
 ├── components/
 │   ├── layout/header.tsx
@@ -52,6 +56,7 @@ src/
 │   ├── parse-ingredients.ts
 │   ├── supabase/client.ts  # 브라우저용 Supabase
 │   ├── supabase/server.ts  # 서버용 Supabase (cookies)
+│   ├── naver-shopping.ts   # 네이버 쇼핑 API 클라이언트 (가격 조회)
 │   └── api/youtube.ts      # YouTube Data API v3
 └── types/
     ├── recipe.ts           # Recipe, RecipeSummary, RecipeStep, RecipeIngredient
@@ -85,6 +90,7 @@ src/
 | `/api/recommend` | POST | `{ tags, days, excludeIds?, recipeIds? }` → `{ menu, fallback }` |
 | `/api/reroll` | POST | `{ tags, excludeIds, dishType? }` → `RecipeSummary` |
 | `/api/grocery` | POST | `{ recipeIds }` → `{ categories }` |
+| `/api/prices` | GET | `?names=양파,당근,간장` → `{ prices }` (네이버 쇼핑 최저가, 1h 캐시) |
 | `/api/youtube` | GET | `?recipeId=uuid` → `{ videoId }` |
 
 ## 환경 변수
@@ -94,6 +100,8 @@ NEXT_PUBLIC_SUPABASE_URL=         # 클라이언트/서버 공통
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=  # 클라이언트 publishable key
 SUPABASE_SECRET_KEY=                   # scripts 전용 (쓰기)
 FOODSAFETY_API_KEY=               # 식약처 API (seed)
+NAVER_CLIENT_ID=                  # 네이버 쇼핑 API (가격 조회)
+NAVER_CLIENT_SECRET=              # 네이버 쇼핑 API (가격 조회)
 YOUTUBE_API_KEY=                  # YouTube Data API v3
 ```
 
@@ -115,3 +123,4 @@ YOUTUBE_API_KEY=                  # YouTube Data API v3
 - UI 컴포넌트: `src/components/ui/` — variant + size props, `clsx` + `tailwind-merge`
 - 상수: `src/lib/constants.ts`에 모아서 관리
 - 타입: `src/types/`에 도메인별 분리 (recipe, menu, grocery)
+- 가격 조회 패턴: Server Component 페이지 내 Client Component 경계 분리 (`ingredients-section.tsx`), `useIngredientPrices` 훅으로 `/api/prices` fetch
