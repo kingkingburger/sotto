@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
+import { SWRegister } from '@/components/sw-register';
 import { Toaster } from 'sonner';
 import './globals.css';
 
@@ -32,6 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {children}
         </main>
         <Footer />
+        <SWRegister />
         <Toaster position="bottom-center" richColors closeButton />
       </body>
     </html>
