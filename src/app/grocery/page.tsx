@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Copy, Check, ChevronDown, ChevronRight, ShoppingBasket, ArrowLeft, Coins } from 'lucide-react';
+import { toast } from 'sonner';
 import type { GroceryResponse, GroceryCategory as GroceryCategoryData } from '@/types/grocery';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -200,7 +201,9 @@ function GroceryPage() {
         const data: GroceryResponse = await res.json();
         setGroceryData(data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : '오류가 발생했어요');
+        const msg = err instanceof Error ? err.message : '오류가 발생했어요';
+        setError(msg);
+        toast.error(msg);
       } finally {
         setLoading(false);
       }
@@ -241,7 +244,7 @@ function GroceryPage() {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // fallback: do nothing
+      toast.error('클립보드 복사에 실패했어요');
     }
   }
 
