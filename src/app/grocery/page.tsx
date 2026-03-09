@@ -112,7 +112,7 @@ function CategorySection({ category, checked, onToggle }: CategorySectionProps) 
             const isChecked = checked.has(key);
             return (
               <li key={key} className="py-3">
-                <label className="flex cursor-pointer items-start gap-3" onClick={() => onToggle(key)}>
+                <label className="flex cursor-pointer items-start gap-3 min-h-[44px] py-1" onClick={() => onToggle(key)}>
                   <div className="mt-0.5 flex-shrink-0">
                     <input
                       type="checkbox"
@@ -297,7 +297,14 @@ function GroceryPage() {
             <span className="text-sm font-medium text-sotto-700">진행률</span>
             <span className="text-sm text-sotto-500">{checkedCount}/{totalItems}개 완료</span>
           </div>
-          <div className="h-2.5 rounded-full bg-sotto-200 overflow-hidden">
+          <div
+            className="h-2.5 rounded-full bg-sotto-200 overflow-hidden"
+            role="progressbar"
+            aria-valuenow={checkedCount}
+            aria-valuemin={0}
+            aria-valuemax={totalItems}
+            aria-label="장보기 진행률"
+          >
             <div
               className="h-full rounded-full bg-accent-500 transition-all duration-300"
               style={{ width: `${progressPercent}%` }}

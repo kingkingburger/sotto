@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, SlidersHorizontal } from 'lucide-react';
 import { CONCEPT_TAGS, TAG_COLORS } from '@/lib/constants';
@@ -17,6 +17,13 @@ export function FilterSheet({ tags, days, onApply }: FilterSheetProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [localTags, setLocalTags] = useState<ConceptTag[]>(tags);
   const [localDays, setLocalDays] = useState<5 | 7>(days);
+
+  // Escape key handler
+  function handleKeyDown(e: React.KeyboardEvent) {
+    if (e.key === 'Escape') {
+      setIsOpen(false);
+    }
+  }
 
   function handleOpen() {
     setLocalTags(tags);
@@ -79,6 +86,11 @@ export function FilterSheet({ tags, days, onApply }: FilterSheetProps) {
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
               className="fixed inset-x-0 bottom-0 z-50 rounded-t-3xl bg-white shadow-2xl sm:inset-x-auto sm:left-1/2 sm:bottom-auto sm:top-1/2 sm:w-full sm:max-w-md sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-3xl"
+              onKeyDown={handleKeyDown}
+              tabIndex={-1}
+              role="dialog"
+              aria-modal="true"
+              aria-label="필터 설정"
             >
               {/* Handle bar (mobile) */}
               <div className="flex justify-center pt-3 sm:hidden">
@@ -108,14 +120,19 @@ export function FilterSheet({ tags, days, onApply }: FilterSheetProps) {
                         <button
                           key={tag.id}
                           onClick={() => toggleTag(tag.id)}
-                          className={`flex items-center gap-1.5 rounded-full border px-3.5 py-2 text-sm font-medium transition-all ${
+                          className={`flex items-center gap-1.5 rounded-xl border px-4 py-2.5 text-left text-sm font-medium transition-all ${
                             isSelected
                               ? TAG_COLORS[tag.id] + ' scale-[1.02] shadow-sm'
                               : 'border-sotto-200 bg-white text-sotto-500 hover:border-sotto-300'
                           }`}
                         >
-                          <span>{tag.emoji}</span>
-                          {tag.label}
+                          <div className="flex flex-col items-start">
+                            <span className="flex items-center gap-1.5">
+                              <span>{tag.emoji}</span>
+                              {tag.label}
+                            </span>
+                            <span className="text-xs font-normal text-sotto-400">{tag.description}</span>
+                          </div>
                         </button>
                       );
                     })}
