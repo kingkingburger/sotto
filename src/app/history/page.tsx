@@ -14,27 +14,27 @@ function HistoryCard({ dayItem }: { dayItem: DayMenu }) {
   const imageUrl = recipe.main_image_url ?? recipe.thumbnail_url;
 
   return (
-    <Link href={`/recipe/${recipe.id}`}>
+    <Link href={`/recipe/${recipe.id}`} className="block flex-shrink-0 w-[120px]">
       <motion.div
-        whileHover={{ y: -3 }}
-        className="overflow-hidden rounded-xl border border-sotto-200 bg-white shadow-card transition-shadow hover:shadow-card-hover"
+        whileHover={{ y: -2 }}
+        className="overflow-hidden rounded-2xl border border-sotto-200 bg-white transition-transform"
       >
-        <div className="relative h-24 bg-sotto-100 sm:h-28">
+        <div className="relative h-20 bg-gradient-to-br from-sotto-200 to-sotto-100">
           {imageUrl ? (
             <Image
               src={imageUrl}
               alt={recipe.name}
               fill
-              sizes="(max-width: 640px) 50vw, 20vw"
+              sizes="120px"
               quality={75}
               className="object-cover"
             />
           ) : (
-            <div className="flex h-full items-center justify-center text-3xl">🍱</div>
+            <div className="flex h-full items-center justify-center text-[32px]">🍱</div>
           )}
         </div>
-        <div className="p-2.5">
-          <p className="line-clamp-1 text-xs font-semibold text-sotto-800 sm:text-sm">
+        <div className="px-2.5 py-2">
+          <p className="truncate text-xs font-semibold text-sotto-800">
             {recipe.name}
           </p>
           <p className="mt-0.5 text-[11px] text-sotto-500">{DAY_LABELS[day - 1]}</p>
@@ -50,15 +50,15 @@ function WeekSection({ week, index }: { week: WeeklyHistory; index: number }) {
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.1 }}
-      className="mb-8"
+      className="mb-6"
     >
-      <div className="mb-3 flex items-baseline justify-between">
-        <h3 className="text-base font-bold text-sotto-800">{formatWeekLabel(week.weekStart)}</h3>
+      <div className="mb-2.5 flex items-center justify-between">
+        <h3 className="text-[15px] font-bold text-sotto-900">{formatWeekLabel(week.weekStart)}</h3>
         <span className="text-xs text-sotto-500">
           {formatDateRange(week.weekStart, week.weekEnd)}
         </span>
       </div>
-      <div className="grid grid-cols-3 gap-3 sm:grid-cols-5">
+      <div className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
         {week.menu.map((dayItem) => (
           <HistoryCard key={`${week.weekStart}-${dayItem.day}`} dayItem={dayItem} />
         ))}
@@ -94,10 +94,10 @@ export default function HistoryPage() {
         <div className="space-y-6">
           {[1, 2].map((i) => (
             <div key={i} className="animate-pulse">
-              <div className="mb-3 h-5 w-24 rounded bg-sotto-200" />
-              <div className="grid grid-cols-3 gap-3 sm:grid-cols-5">
+              <div className="mb-2.5 h-5 w-24 rounded bg-sotto-200" />
+              <div className="flex gap-2.5 overflow-hidden">
                 {[1, 2, 3, 4, 5].map((j) => (
-                  <div key={j} className="h-36 rounded-xl bg-sotto-100" />
+                  <div key={j} className="h-[120px] w-[120px] flex-shrink-0 rounded-2xl bg-sotto-100" />
                 ))}
               </div>
             </div>

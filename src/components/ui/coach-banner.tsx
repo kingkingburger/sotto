@@ -37,18 +37,17 @@ export function CoachBanner() {
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
           className="mb-4 overflow-hidden"
         >
-          <div className="flex items-start gap-3 rounded-2xl border border-sotto-200 bg-gradient-to-r from-sotto-100 to-accent-50/30 px-4 py-3.5">
-            <span className="mt-0.5 text-xl leading-none">🍱</span>
-            <div className="flex-1 text-sm text-sotto-600">
-              <p className="font-semibold text-sotto-800">매주 도시락 메뉴를 추천해드려요</p>
-              <p className="mt-0.5">카드를 탭하면 레시피를 볼 수 있고, 🎲로 다시 뽑을 수 있어요.</p>
+          <div className="flex items-start gap-3 rounded-2xl border border-sotto-200 bg-gradient-to-br from-sotto-100 to-sotto-500/[0.12] px-4 py-3.5">
+            <span className="mt-0.5 text-[28px] leading-none flex-shrink-0">🍱</span>
+            <div className="flex-1 text-sm leading-relaxed text-sotto-700">
+              <p><strong className="font-semibold text-sotto-900">매주 도시락 메뉴를 추천해드려요.</strong>{' '}카드를 탭하면 레시피를 볼 수 있고, 🎲로 다시 뽑을 수 있어요.</p>
             </div>
             <button
               onClick={handleDismiss}
-              className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-sotto-400 transition-colors hover:bg-sotto-200 hover:text-sotto-600"
+              className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-sotto-200 text-sotto-600 transition-colors hover:bg-sotto-300"
               aria-label="안내 닫기"
             >
-              <X className="h-4 w-4" />
+              <X className="h-3.5 w-3.5" />
             </button>
           </div>
         </motion.div>

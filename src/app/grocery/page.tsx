@@ -348,7 +348,7 @@ function GroceryPage() {
 
       {/* Sticky action bar */}
       {!loading && groceryData && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-sotto-200 bg-sotto-50/95 px-4 py-4 backdrop-blur-sm">
+        <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-sotto-200/60 bg-sotto-50/85 px-5 py-3 backdrop-blur-[20px] backdrop-saturate-[180%]">
           <div className="mx-auto flex max-w-4xl items-center justify-between gap-3">
             <button
               onClick={() => router.back()}

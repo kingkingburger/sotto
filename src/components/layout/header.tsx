@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { clsx } from 'clsx';
-import { ChefHat, Check } from 'lucide-react';
+import { Check } from 'lucide-react';
 
 const STEPS = [
   { href: '/', label: '메뉴', step: 1 },
@@ -26,13 +26,13 @@ export function Header() {
   const showProgress = showProgressBar(pathname);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-sotto-200 bg-sotto-50/90 backdrop-blur-sm">
-      <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4">
+    <header className="sticky top-0 z-50 border-b border-sotto-200/60 bg-sotto-50/85 backdrop-blur-[20px] backdrop-saturate-[180%]">
+      <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-5">
         <Link
           href="/"
-          className="flex items-center gap-2 text-xl font-bold tracking-tight text-sotto-700 transition-colors hover:text-sotto-600"
+          className="text-xl font-bold tracking-tight text-sotto-800 transition-colors hover:text-sotto-600"
+          style={{ letterSpacing: '-0.5px' }}
         >
-          <ChefHat className="h-5 w-5" />
           Sotto
         </Link>
 
