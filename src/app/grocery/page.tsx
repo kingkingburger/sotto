@@ -9,21 +9,7 @@ import type { GroceryResponse, GroceryCategory as GroceryCategoryData } from '@/
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { BackButton } from '@/components/back-button';
-
-const CATEGORY_EMOJI: Record<string, string> = {
-  vegetable: '🥬',
-  meat: '🥩',
-  seafood: '🐟',
-  dairy: '🥛',
-  grain: '🌾',
-  seasoning: '🧂',
-  sauce: '🫙',
-  noodle: '🍜',
-  tofu: '🫘',
-  egg: '🥚',
-  oil: '🫒',
-  other: '📦',
-};
+import { CATEGORY_EMOJI } from '@/lib/constants';
 
 const STORAGE_KEY_PREFIX = 'sotto-grocery-checked';
 

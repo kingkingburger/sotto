@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import type { RecipeIngredient } from '@/types/recipe';
-import { CATEGORY_LABELS, CATEGORY_ORDER } from '@/lib/constants';
+import { CATEGORY_LABELS, CATEGORY_ORDER, CATEGORY_EMOJI } from '@/lib/constants';
 import { useIngredientPrices, PriceTag } from './ingredient-prices';
 
 const CATEGORY_DOT_COLORS: Record<string, string> = {
@@ -18,21 +18,6 @@ const CATEGORY_DOT_COLORS: Record<string, string> = {
   egg: 'bg-yellow-300',
   oil: 'bg-emerald-400',
   other: 'bg-sotto-300',
-};
-
-const INGREDIENT_EMOJI: Record<string, string> = {
-  vegetable: '🥬',
-  meat: '🥩',
-  seafood: '🐟',
-  dairy: '🥛',
-  grain: '🌾',
-  seasoning: '🧂',
-  sauce: '🫙',
-  noodle: '🍜',
-  tofu: '🫘',
-  egg: '🥚',
-  oil: '🫒',
-  other: '📦',
 };
 
 interface Props {
@@ -99,7 +84,7 @@ export function IngredientsSection({ ingredients }: Props) {
           const label =
             CATEGORY_LABELS[cat as keyof typeof CATEGORY_LABELS] ?? cat;
           const dotColor = CATEGORY_DOT_COLORS[cat] ?? 'bg-sotto-300';
-          const emoji = INGREDIENT_EMOJI[cat] ?? '📦';
+          const emoji = CATEGORY_EMOJI[cat as keyof typeof CATEGORY_EMOJI] ?? '📦';
           return (
             <div key={cat}>
               <div className="mb-1 flex items-center gap-1.5 border-b border-sotto-200 pb-1.5">

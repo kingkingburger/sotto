@@ -67,3 +67,18 @@ export const TAG_COLORS: Record<ConceptTag, string> = {
   easy: 'bg-tag-easy/20 text-purple-700 border-tag-easy/30',
   nutrition: 'bg-tag-nutrition/20 text-teal-700 border-tag-nutrition/30',
 };
+
+export const CATEGORY_EMOJI: Record<IngredientCategory, string> = {
+  vegetable: '🥬',
+  meat: '🥩',
+  seafood: '🐟',
+  dairy: '🥛',
+  grain: '🌾',
+  seasoning: '🧂',
+  sauce: '🫙',
+  noodle: '🍜',
+  tofu: '🫘',
+  egg: '🥚',
+  oil: '🫒',
+  other: '📦',
+};
