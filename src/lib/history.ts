@@ -9,6 +9,7 @@ export interface WeeklyHistory {
 
 const STORAGE_KEY = 'sotto-history';
 const MAX_WEEKS = 4;
+const MAX_AGE_MS = 28 * 24 * 60 * 60 * 1000; // 28 days
 
 export function loadHistory(): WeeklyHistory[] {
   if (typeof window === 'undefined') return [];
@@ -16,8 +17,11 @@ export function loadHistory(): WeeklyHistory[] {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
     const data = JSON.parse(raw) as WeeklyHistory[];
-    // Auto-delete beyond MAX_WEEKS
-    return data.slice(0, MAX_WEEKS);
+    const cutoff = Date.now() - MAX_AGE_MS;
+    // Filter by both count and age (28 days)
+    return data
+      .filter((h) => new Date(h.savedAt).getTime() > cutoff)
+      .slice(0, MAX_WEEKS);
   } catch {
     return [];
   }

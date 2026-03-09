@@ -17,6 +17,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PriceBadge } from '@/components/ui/price-badge';
 import { CoachBanner } from '@/components/ui/coach-banner';
+import { useReducedMotion } from '@/hooks/use-reduced-motion';
 
 /* ─── Skeleton ─── */
 function MenuCardSkeleton({ index }: { index: number }) {
@@ -41,36 +42,47 @@ function MenuCardSkeleton({ index }: { index: number }) {
 }
 
 /* ─── Card ─── */
-const cardVariants = {
-  hidden: { opacity: 0, y: 30, scale: 0.95 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: {
-      delay: i * 0.06,
-      type: 'spring' as const,
-      stiffness: 260,
-      damping: 24,
+function getCardVariants(reduceMotion: boolean) {
+  if (reduceMotion) {
+    return {
+      hidden: { opacity: 0 },
+      visible: () => ({ opacity: 1, transition: { duration: 0.01 } }),
+      exit: { opacity: 0, transition: { duration: 0.01 } },
+    };
+  }
+  return {
+    hidden: { opacity: 0, y: 30, scale: 0.95 },
+    visible: (i: number) => ({
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: {
+        delay: i * 0.06,
+        type: 'spring' as const,
+        stiffness: 260,
+        damping: 24,
+      },
+    }),
+    exit: {
+      opacity: 0,
+      scale: 0.9,
+      transition: { duration: 0.2 },
     },
-  }),
-  exit: {
-    opacity: 0,
-    scale: 0.9,
-    transition: { duration: 0.2 },
-  },
-};
+  };
+}
 
 function MenuCard({
   dayItem,
   index,
   isRerolling,
   onReroll,
+  cardVariants,
 }: {
   dayItem: DayMenu;
   index: number;
   isRerolling: boolean;
   onReroll: () => void;
+  cardVariants: ReturnType<typeof getCardVariants>;
 }) {
   const { recipe, day } = dayItem;
   const imageUrl = recipe.main_image_url ?? recipe.thumbnail_url;
@@ -215,6 +227,8 @@ function MenuCard({
 export default function HomePage() {
   const router = useRouter();
   const store = useMenuStore();
+  const reduceMotion = useReducedMotion();
+  const cardVariants = getCardVariants(reduceMotion);
   const [loading, setLoading] = useState(true);
   const [rerollingDay, setRerollingDay] = useState<number | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -449,6 +463,7 @@ export default function HomePage() {
                   index={index}
                   isRerolling={rerollingDay === dayItem.day}
                   onReroll={() => handleReroll(dayItem)}
+                  cardVariants={cardVariants}
                 />
               ))}
         </div>
