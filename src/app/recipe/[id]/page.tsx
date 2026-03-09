@@ -145,73 +145,37 @@ export default async function RecipePage({ params }: { params: Promise<{ id: str
         </div>
       </div>
 
-      {/* Nutrition — CSS-only 미니 막대 차트 */}
-      {nutritionItems.length > 0 && (
-        <div className="mb-8 rounded-2xl border border-sotto-200 bg-white p-5 shadow-card">
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-sotto-500">
-            영양 정보
-          </h2>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-            {nutritionItems.map(({ label, value, unit, dailyRef }) => {
-              const pct = Math.min(100, Math.round(((value as number) / dailyRef) * 100));
-              return (
-                <div key={label} className="flex flex-col items-center rounded-xl bg-sotto-50 px-3 py-4">
-                  <span className="text-xl font-bold text-sotto-800">
-                    {value}
-                    <span className="ml-0.5 text-sm font-normal text-sotto-500">{unit}</span>
-                  </span>
-                  <span className="mt-1 text-xs text-sotto-500">{label}</span>
-                  {/* 미니 프로그레스 바 */}
-                  <div className="mt-2 h-1.5 w-full rounded-full bg-sotto-200">
-                    <div
-                      className="h-full rounded-full bg-accent-400"
-                      style={{ width: `${pct}%` }}
-                    />
-                  </div>
-                  <p className="mt-1 text-[10px] text-sotto-400">일일 {pct}%</p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* YouTube - above ingredients */}
-      <YouTubeSection recipeId={id} existingVideoId={recipe.youtube_video_id} />
-
-      {/* Ingredients — 카테고리별 컬러 스트라이프 */}
+      {/* Ingredients — 컴팩트 리스트 */}
       {ingredients.length > 0 && (
         <div className="mb-8">
-          <h2 className="mb-4 text-lg font-bold text-sotto-800">재료</h2>
-          <div className="space-y-4">
+          <h2 className="mb-3 text-[17px] font-bold text-sotto-900">재료</h2>
+          <div className="space-y-3">
             {orderedCategories.map((cat) => {
               const items = grouped.get(cat) ?? [];
               const label = CATEGORY_LABELS[cat as keyof typeof CATEGORY_LABELS] ?? cat;
               const borderColor = CATEGORY_BORDER_COLORS[cat] ?? 'border-sotto-300';
               return (
-                <div
-                  key={cat}
-                  className={`rounded-2xl border border-sotto-200 bg-white p-4 shadow-card border-l-4 ${borderColor}`}
-                >
-                  <h3 className="mb-3 text-sm font-semibold text-sotto-500">{label}</h3>
-                  <ul className="space-y-2">
-                    {items.map((ing) => (
-                      <li
-                        key={ing.id}
-                        className={`flex items-center justify-between text-sm ${ing.is_optional ? 'opacity-60' : ''}`}
-                      >
-                        <span className={`text-sotto-800 ${ing.is_optional ? 'italic' : ''}`}>
-                          {ing.name}
-                          {ing.is_optional && (
-                            <span className="ml-1.5 text-xs text-sotto-400">(선택)</span>
-                          )}
-                        </span>
-                        {ing.amount && (
-                          <span className="text-sotto-500">{ing.amount}</span>
+                <div key={cat}>
+                  <div className="mb-1 flex items-center gap-1.5 border-b border-sotto-200 pb-1.5">
+                    <span className={`h-2 w-2 rounded-full ${borderColor.replace('border-', 'bg-')}`} />
+                    <h3 className="text-[13px] font-semibold text-sotto-600">{label}</h3>
+                  </div>
+                  {items.map((ing) => (
+                    <div
+                      key={ing.id}
+                      className={`flex items-center border-b border-sotto-200/40 py-2.5 text-sm ${ing.is_optional ? 'opacity-60' : ''}`}
+                    >
+                      <span className={`flex-1 text-sotto-800 ${ing.is_optional ? 'italic' : ''}`}>
+                        {ing.name}
+                        {ing.is_optional && (
+                          <span className="ml-1 text-xs text-sotto-400">(선택)</span>
                         )}
-                      </li>
-                    ))}
-                  </ul>
+                      </span>
+                      {ing.amount && (
+                        <span className="min-w-[60px] text-right text-[13px] text-sotto-600">{ing.amount}</span>
+                      )}
+                    </div>
+                  ))}
                 </div>
               );
             })}
@@ -219,23 +183,22 @@ export default async function RecipePage({ params }: { params: Promise<{ id: str
         </div>
       )}
 
+      {/* YouTube */}
+      <YouTubeSection recipeId={id} existingVideoId={recipe.youtube_video_id} />
+
       {/* Steps — 타임라인 형태 */}
       {steps.length > 0 && (
         <div className="mb-8">
-          <h2 className="mb-6 text-lg font-bold text-sotto-800">조리 순서</h2>
+          <h2 className="mb-5 text-[17px] font-bold text-sotto-900">조리 순서</h2>
           <div className="relative pl-10">
-            {/* 세로 연결 라인 */}
             <div className="absolute bottom-0 left-3.5 top-0 w-0.5 bg-sotto-200" />
-
             {steps.map((step, i) => (
-              <div key={step.id} className={`relative ${i < steps.length - 1 ? 'mb-8' : ''}`}>
-                {/* 숫자 노드 */}
-                <div className="absolute -left-10 flex h-7 w-7 items-center justify-center rounded-full bg-sotto-700 text-xs font-bold text-white">
+              <div key={step.id} className={`relative ${i < steps.length - 1 ? 'mb-6' : ''}`}>
+                <div className="absolute -left-10 flex h-7 w-7 items-center justify-center rounded-full bg-sotto-800 text-[13px] font-bold text-sotto-50">
                   {step.step_number}
                 </div>
-                {/* 스텝 내용 */}
                 <div>
-                  <p className="text-sm leading-relaxed text-sotto-800">{step.instruction}</p>
+                  <p className="text-sm leading-relaxed text-sotto-700">{step.instruction}</p>
                   {step.image_url && (
                     <div className="relative mt-3 h-60 w-full overflow-hidden rounded-xl">
                       <Image
@@ -255,14 +218,41 @@ export default async function RecipePage({ params }: { params: Promise<{ id: str
         </div>
       )}
 
-      {/* Tip — accent-50 배경 + Lightbulb 아이콘 */}
+      {/* Tip */}
       {recipe.tip && (
-        <div className="rounded-2xl border border-sotto-200 bg-accent-50 p-5 shadow-card">
+        <div className="mb-8 rounded-2xl border border-sotto-200 bg-accent-50 p-5 shadow-card">
           <h2 className="mb-2 flex items-center gap-2 text-sm font-semibold text-sotto-600">
             <Lightbulb className="h-4 w-4" />
             요리 팁
           </h2>
           <p className="text-sm leading-relaxed text-sotto-700">{recipe.tip}</p>
+        </div>
+      )}
+
+      {/* Nutrition — 마지막 */}
+      {nutritionItems.length > 0 && (
+        <div className="mb-8 rounded-2xl border border-sotto-200 bg-white p-5 shadow-card">
+          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-sotto-500">
+            영양 정보
+          </h2>
+          <div className="grid grid-cols-4 gap-2.5">
+            {nutritionItems.map(({ label, value, unit, dailyRef }) => {
+              const pct = Math.min(100, Math.round(((value as number) / dailyRef) * 100));
+              return (
+                <div key={label} className="flex flex-col items-center rounded-xl bg-sotto-50 px-2 py-3">
+                  <span className="text-lg font-bold text-sotto-800">
+                    {value}
+                    <span className="ml-0.5 text-[11px] font-normal text-sotto-500">{unit}</span>
+                  </span>
+                  <span className="mt-0.5 text-[11px] text-sotto-500">{label}</span>
+                  <div className="mt-1.5 h-1 w-full rounded-full bg-sotto-200">
+                    <div className="h-full rounded-full bg-accent-400" style={{ width: `${pct}%` }} />
+                  </div>
+                  <p className="mt-0.5 text-[10px] text-sotto-400">일일 {pct}%</p>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
       <RerollButton
