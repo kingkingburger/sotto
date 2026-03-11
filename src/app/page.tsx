@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Dices, Clock, Flame, RefreshCw, ShoppingBasket, AlertTriangle, Play, History } from 'lucide-react';
+import { Dices, Clock, Flame, RefreshCw, ShoppingBasket, AlertTriangle, Play, History, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { toast } from 'sonner';
@@ -331,6 +331,34 @@ export default function HomePage() {
 
   const groceryIds = store.menu.map((d) => d.recipe.id).join(',');
 
+  // Weekly trend
+  interface WeeklyTrend {
+    currentTotal: number;
+    weekAgoTotal: number;
+    changeAmount: number;
+    changePercent: number;
+    direction: 'up' | 'down' | 'stable';
+    pricedCount: number;
+    totalCount: number;
+  }
+  const [weeklyTrend, setWeeklyTrend] = useState<WeeklyTrend | null>(null);
+
+  useEffect(() => {
+    if (loading || store.menu.length === 0) return;
+    const ids = store.menu.map((d) => d.recipe.id).join(',');
+    if (!ids) return;
+
+    const controller = new AbortController();
+    fetch(`/api/weekly-trend?recipeIds=${ids}`, { signal: controller.signal })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data && data.pricedCount > 0) setWeeklyTrend(data);
+      })
+      .catch(() => {});
+
+    return () => controller.abort();
+  }, [loading, store.menu]);
+
   return (
     <div className="gradient-warm min-h-screen">
       <div className="mx-auto max-w-5xl px-4 pb-32 pt-6">
@@ -428,19 +456,58 @@ export default function HomePage() {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="mb-5 flex items-center justify-between rounded-2xl border border-sotto-200 bg-gradient-to-br from-sotto-500/[0.08] to-sotto-500/[0.04] px-4 py-3.5"
+              className="mb-5 rounded-2xl border border-sotto-200 bg-gradient-to-br from-sotto-500/[0.08] to-sotto-500/[0.04] px-4 py-3.5"
             >
-              <span className="text-body-sm font-medium text-sotto-600">이번 주 예상 재료비</span>
-              <div className="text-right">
-                <span className="text-lg font-bold text-sotto-800">
-                  ~{totalPrice.toLocaleString()}원
-                </span>
-                {pricedCount < store.menu.length && (
-                  <span className="ml-1.5 text-label text-sotto-500">
-                    ({pricedCount}/{store.menu.length}개 기준)
+              <div className="flex items-center justify-between">
+                <span className="text-body-sm font-medium text-sotto-600">이번 주 예상 재료비</span>
+                <div className="text-right">
+                  <span className="text-lg font-bold text-sotto-800">
+                    ~{totalPrice.toLocaleString()}원
                   </span>
-                )}
+                  {pricedCount < store.menu.length && (
+                    <span className="ml-1.5 text-label text-sotto-500">
+                      ({pricedCount}/{store.menu.length}개 기준)
+                    </span>
+                  )}
+                </div>
               </div>
+
+              {/* Weekly trend */}
+              {weeklyTrend && weeklyTrend.direction !== 'stable' && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  className="mt-2 flex items-center gap-1.5 border-t border-sotto-200/60 pt-2"
+                >
+                  {weeklyTrend.direction === 'down' ? (
+                    <TrendingDown className="h-4 w-4 text-emerald-600" />
+                  ) : (
+                    <TrendingUp className="h-4 w-4 text-red-500" />
+                  )}
+                  <span
+                    className={`text-sm font-semibold ${
+                      weeklyTrend.direction === 'down' ? 'text-emerald-600' : 'text-red-500'
+                    }`}
+                  >
+                    지난주 대비{' '}
+                    {weeklyTrend.direction === 'down' ? '↓' : '↑'}
+                    {Math.abs(weeklyTrend.changeAmount).toLocaleString()}원
+                    {' '}({weeklyTrend.changePercent > 0 ? '+' : ''}{weeklyTrend.changePercent}%)
+                  </span>
+                </motion.div>
+              )}
+              {weeklyTrend && weeklyTrend.direction === 'stable' && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  className="mt-2 flex items-center gap-1.5 border-t border-sotto-200/60 pt-2"
+                >
+                  <Minus className="h-4 w-4 text-sotto-500" />
+                  <span className="text-sm font-medium text-sotto-500">
+                    지난주와 비슷한 수준이에요
+                  </span>
+                </motion.div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>

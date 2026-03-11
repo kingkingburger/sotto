@@ -1,0 +1,33 @@
+name: Daily Price Fetch
+
+on:
+  schedule:
+    - cron: '0 21 * * *' # UTC 21:00 = KST 06:00
+  workflow_dispatch: {} # 수동 실행
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - run: bun install
+
+      - name: Build mappings (if needed)
+        run: bun run scripts/build-mappings.ts
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+
+      - name: Fetch daily prices
+        run: bun run scripts/fetch-prices.ts
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          KAMIS_CERT_KEY: ${{ secrets.KAMIS_CERT_KEY }}
+          KAMIS_CERT_ID: ${{ secrets.KAMIS_CERT_ID }}
+          DATA_GO_KR_API_KEY: ${{ secrets.DATA_GO_KR_API_KEY }}

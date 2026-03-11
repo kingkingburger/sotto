@@ -5,9 +5,8 @@
  */
 
 const KAMIS_BASE = 'https://www.kamis.or.kr/service/price/xml.do';
-const TIMEOUT_MS = 15000;
-const USER_AGENT =
-  'Mozilla/5.0 (compatible; SottoBot/1.0; +https://sotto.app)';
+const TIMEOUT_MS = 30000;
+const USER_AGENT = 'Mozilla/5.0';
 
 /** KAMIS 카테고리 코드 */
 export const KAMIS_CATEGORIES = {
@@ -152,8 +151,16 @@ export async function fetchDailyPricesByCategory(
   }
 }
 
+/** 카테고리 간 딜레이 (ms) — KAMIS 레이트리밋 방지 */
+const CATEGORY_DELAY_MS = 3000;
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 /**
  * 전체 카테고리 일일 가격 일괄 조회
+ * 카테고리 간 3초 딜레이로 레이트리밋 방지
  */
 export async function fetchAllDailyPrices(
   date?: string,
@@ -161,9 +168,13 @@ export async function fetchAllDailyPrices(
   const categories = Object.values(KAMIS_CATEGORIES);
   const results: KamisPriceItem[] = [];
 
-  // 순차 호출 (API 부하 방지)
-  for (const cat of categories) {
-    const items = await fetchDailyPricesByCategory(cat, { date });
+  for (let i = 0; i < categories.length; i++) {
+    if (i > 0) {
+      await sleep(CATEGORY_DELAY_MS);
+    }
+    console.log(`  KAMIS 카테고리 ${categories[i]} 조회 중... (${i + 1}/${categories.length})`);
+    const items = await fetchDailyPricesByCategory(categories[i], { date });
+    console.log(`  → ${items.length}개 품목`);
     results.push(...items);
   }
 
