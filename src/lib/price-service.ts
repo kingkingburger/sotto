@@ -57,9 +57,31 @@ export const KAMIS_INGREDIENT_MAP: Record<string, KamisMapping> = {
   토마토: { itemCode: '243', kindCode: '00', categoryCode: '200' },
   고추: { itemCode: '244', kindCode: '00', categoryCode: '200' },
   풋고추: { itemCode: '244', kindCode: '00', categoryCode: '200' },
+  콩나물: { itemCode: '252', kindCode: '00', categoryCode: '200' },
+  미나리: { itemCode: '253', kindCode: '00', categoryCode: '200' },
+  연근: { itemCode: '254', kindCode: '00', categoryCode: '200' },
+  브로콜리: { itemCode: '261', kindCode: '00', categoryCode: '200' },
+  셀러리: { itemCode: '262', kindCode: '00', categoryCode: '200' },
+  가지: { itemCode: '243', kindCode: '02', categoryCode: '200' },
+  표고버섯: { itemCode: '271', kindCode: '02', categoryCode: '200' },
+  느타리버섯: { itemCode: '271', kindCode: '01', categoryCode: '200' },
+  팽이버섯: { itemCode: '271', kindCode: '03', categoryCode: '200' },
+  새송이버섯: { itemCode: '271', kindCode: '04', categoryCode: '200' },
+  숙주: { itemCode: '252', kindCode: '01', categoryCode: '200' },
+  쪽파: { itemCode: '224', kindCode: '01', categoryCode: '200' },
+  청양고추: { itemCode: '244', kindCode: '01', categoryCode: '200' },
+  방울토마토: { itemCode: '243', kindCode: '01', categoryCode: '200' },
+  // 과일류 (400)
+  사과: { itemCode: '411', kindCode: '06', categoryCode: '400' },
+  배: { itemCode: '412', kindCode: '01', categoryCode: '400' },
+  레몬: { itemCode: '418', kindCode: '00', categoryCode: '400' },
   // 축산물 (500)
   소고기: { itemCode: '511', kindCode: '00', categoryCode: '500' },
   돼지고기: { itemCode: '521', kindCode: '06', categoryCode: '500' },
+  삼겹살: { itemCode: '521', kindCode: '04', categoryCode: '500' },
+  돼지목살: { itemCode: '521', kindCode: '07', categoryCode: '500' },
+  소시지: { itemCode: '553', kindCode: '00', categoryCode: '500' },
+  오리고기: { itemCode: '532', kindCode: '00', categoryCode: '500' },
   닭고기: { itemCode: '531', kindCode: '00', categoryCode: '500' },
   닭: { itemCode: '531', kindCode: '00', categoryCode: '500' },
   닭가슴살: { itemCode: '531', kindCode: '00', categoryCode: '500' },
@@ -69,7 +91,12 @@ export const KAMIS_INGREDIENT_MAP: Record<string, KamisMapping> = {
   고등어: { itemCode: '611', kindCode: '00', categoryCode: '600' },
   오징어: { itemCode: '612', kindCode: '00', categoryCode: '600' },
   갈치: { itemCode: '613', kindCode: '00', categoryCode: '600' },
+  삼치: { itemCode: '614', kindCode: '00', categoryCode: '600' },
   새우: { itemCode: '615', kindCode: '00', categoryCode: '600' },
+  조기: { itemCode: '616', kindCode: '00', categoryCode: '600' },
+  멸치: { itemCode: '617', kindCode: '00', categoryCode: '600' },
+  꽁치: { itemCode: '618', kindCode: '00', categoryCode: '600' },
+  바지락: { itemCode: '621', kindCode: '00', categoryCode: '600' },
   // 식량작물 (100)
   쌀: { itemCode: '111', kindCode: '02', categoryCode: '100' },
   콩: { itemCode: '141', kindCode: '00', categoryCode: '100' },
@@ -104,6 +131,41 @@ export const CONSUMER_KEYWORD_MAP: Record<string, string> = {
   스팸: '스팸',
   소면: '소면',
   당면: '당면',
+  떡: '떡',
+  떡볶이떡: '떡볶이떡',
+  라면: '라면',
+  빵가루: '빵가루',
+  부침가루: '부침가루',
+  튀김가루: '튀김가루',
+  전분: '전분',
+  감자전분: '감자전분',
+  물엿: '물엿',
+  올리고당: '올리고당',
+  맛술: '맛술',
+  미림: '미림',
+  청주: '청주',
+  쌈장: '쌈장',
+  참치캔: '참치캔',
+  김치: '김치',
+  배추김치: '배추김치',
+  멸치액젓: '액젓',
+  액젓: '액젓',
+  피쉬소스: '피쉬소스',
+  들기름: '들기름',
+  다시마: '다시마',
+  토마토소스: '토마토소스',
+  케첩: '케첩',
+  돈까스소스: '돈까스소스',
+  순두부: '순두부',
+  스파게티면: '스파게티',
+  파스타면: '파스타',
+  우동면: '우동',
+  칼국수면: '칼국수',
+  생크림: '생크림',
+  모짜렐라치즈: '모짜렐라',
+  크림치즈: '크림치즈',
+  베이컨: '베이컨',
+  햄: '햄',
 };
 
 // ─── KAMIS 캐시 (세션 내 메모리 캐시) ──────────────────────────────
@@ -279,23 +341,38 @@ function tryStatic(name: string): PriceResult | null {
   return null;
 }
 
+// ─── 이름 정규화 ─────────────────────────────────────────────────
+function normalizeName(name: string): string {
+  return name
+    .replace(/\(.*?\)/g, '')          // 괄호 안 내용 제거
+    .replace(/\d+[gGmMlL큰술작은술컵개장봉캔모팩]/g, '') // 수량+단위 제거
+    .replace(/약간|조금|적당량|적당히/g, '')  // 수량 표현 제거
+    .trim();
+}
+
 // ─── 매핑 헬퍼 ────────────────────────────────────────────────────
 function findKamisMapping(name: string): KamisMapping | null {
+  const cleaned = normalizeName(name);
+
   // 정확한 매칭
+  if (KAMIS_INGREDIENT_MAP[cleaned]) return KAMIS_INGREDIENT_MAP[cleaned];
   if (KAMIS_INGREDIENT_MAP[name]) return KAMIS_INGREDIENT_MAP[name];
 
   // 부분 매칭 (예: "돼지고기 앞다리" → "돼지고기")
   for (const [key, mapping] of Object.entries(KAMIS_INGREDIENT_MAP)) {
-    if (name.includes(key)) return mapping;
+    if (cleaned.includes(key) || key.includes(cleaned)) return mapping;
   }
   return null;
 }
 
 function findConsumerKeyword(name: string): string | null {
+  const cleaned = normalizeName(name);
+
+  if (CONSUMER_KEYWORD_MAP[cleaned]) return CONSUMER_KEYWORD_MAP[cleaned];
   if (CONSUMER_KEYWORD_MAP[name]) return CONSUMER_KEYWORD_MAP[name];
 
   for (const [key, keyword] of Object.entries(CONSUMER_KEYWORD_MAP)) {
-    if (name.includes(key)) return keyword;
+    if (cleaned.includes(key) || key.includes(cleaned)) return keyword;
   }
   return null;
 }
