@@ -40,7 +40,6 @@ export async function POST(request: Request) {
       const { createClient } = await import('@/lib/supabase/server');
       const supabase = await createClient();
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let result: { data: any[] | null; error: any } = await supabase
         .from('recipes')
         .select(RECIPE_SUMMARY_FIELDS_EXTENDED)

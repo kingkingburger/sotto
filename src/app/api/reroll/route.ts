@@ -25,7 +25,6 @@ export async function POST(request: Request) {
   try {
     const supabase = await createClient();
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const buildQuery = async (matchDishType?: string): Promise<{ data: any[] | null; error: any }> => {
       const applyFilters = (fields: string) => {
         let q = supabase

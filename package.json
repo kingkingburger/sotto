@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint src/",
     "seed": "tsx scripts/seed-recipes.ts",
     "parse-ingredients": "tsx scripts/parse-ingredients.ts",
     "classify-tags": "tsx scripts/classify-tags.ts",
@@ -29,6 +29,7 @@
     "zustand": "^5.0.11"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.3.5",
     "@playwright/test": "^1.58.2",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",

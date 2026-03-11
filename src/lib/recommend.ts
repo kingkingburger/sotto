@@ -38,7 +38,6 @@ function diversify<T extends { dish_type: string }>(pool: T[], days: number): T[
  * Try selecting with extended fields (price_tier etc.), fall back to base fields
  * if DB migration hasn't been applied yet.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function queryRecipes(
   query: ReturnType<SupabaseClient['from']>,
   filters: {
