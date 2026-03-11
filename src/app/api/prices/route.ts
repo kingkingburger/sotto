@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getIngredientPrices } from '@/lib/naver-shopping';
+import { getIngredientPrices } from '@/lib/price-service';
 
 /**
  * 간단한 IP 기반 레이트리밋 (슬라이딩 윈도우)
@@ -69,13 +69,20 @@ export async function GET(request: NextRequest) {
   try {
     const results = await getIngredientPrices(names);
 
-    const prices: Record<string, { price: number | null; unit: string; mallName: string | null; confidence: number }> = {};
+    const prices: Record<string, {
+      price: number;
+      unit: string;
+      source: string;
+      confidence: number;
+      trend?: { direction: string; changePercent: number };
+    }> = {};
     for (const [name, result] of results) {
       prices[name] = {
         price: result.price,
         unit: result.unit,
-        mallName: result.mallName,
+        source: result.source,
         confidence: result.confidence,
+        trend: result.trend,
       };
     }
 
