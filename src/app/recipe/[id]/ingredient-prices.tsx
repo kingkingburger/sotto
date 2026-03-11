@@ -3,10 +3,11 @@
 import { useEffect, useState } from 'react';
 
 interface PriceData {
-  price: number | null;
+  price: number;
   unit: string;
-  mallName: string | null;
+  source: string;
   confidence: number;
+  trend?: { direction: 'up' | 'down' | 'stable'; changePercent: number };
 }
 
 /**
@@ -68,11 +69,27 @@ export function PriceTag({
     );
   }
 
-  if (!price || price.price === null || price.confidence < 0.5) return null;
+  if (!price || price.confidence < 0.3) return null;
+
+  const trendIcon =
+    price.trend?.direction === 'up'
+      ? '↑'
+      : price.trend?.direction === 'down'
+        ? '↓'
+        : null;
+  const trendColor =
+    price.trend?.direction === 'up'
+      ? 'text-red-500'
+      : price.trend?.direction === 'down'
+        ? 'text-green-600'
+        : '';
 
   return (
-    <span className="ml-2 shrink-0 text-xs font-medium text-accent-600">
+    <span className="ml-2 flex shrink-0 items-center gap-1 text-xs font-medium text-accent-600">
       ~{price.price.toLocaleString()}원
+      {trendIcon && (
+        <span className={trendColor}>{trendIcon}</span>
+      )}
     </span>
   );
 }

@@ -73,9 +73,14 @@ export function IngredientsSection({ ingredients }: Props) {
       <div className="mb-3 flex items-center justify-between">
         <h2 className="text-subtitle font-bold text-sotto-900">재료</h2>
         {!loading && totalPrice.count > 0 && (
-          <span className="text-sm font-semibold text-accent-600">
-            예상 ~{totalPrice.sum.toLocaleString()}원
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold text-accent-600">
+              예상 ~{totalPrice.sum.toLocaleString()}원
+            </span>
+            <span className="rounded-full bg-sotto-100 px-1.5 py-0.5 text-[10px] font-medium text-sotto-500">
+              {totalPrice.count}/{names.length}
+            </span>
+          </div>
         )}
       </div>
       <div className="space-y-3">
