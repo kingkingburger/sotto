@@ -157,4 +157,7 @@ async function main() {
   console.log(`DB 저장 합계: ${kamisSaved + consumerSaved}개\n`);
 }
 
-main().catch(console.error);
+main().catch((err) => {
+  console.error('fetch-prices failed:', err);
+  process.exit(1);
+});

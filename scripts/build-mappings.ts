@@ -1,5 +1,11 @@
 import './lib/load-env';
 import { createClient } from '@supabase/supabase-js';
+import {
+  KAMIS_INGREDIENT_MAP,
+  CONSUMER_KEYWORD_MAP,
+  type KamisMapping,
+} from '../src/lib/price-service';
+import type { KamisCategoryCode } from '../src/lib/kamis';
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SECRET_KEY!;
@@ -10,88 +16,6 @@ if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
 }
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
-
-// ─── KAMIS 재료 매핑 (price-service.ts에서 복제) ───────────────────────
-type KamisCategoryCode = '100' | '200' | '500' | '600';
-
-interface KamisMapping {
-  itemCode: string;
-  kindCode: string;
-  categoryCode: KamisCategoryCode;
-}
-
-const KAMIS_INGREDIENT_MAP: Record<string, KamisMapping> = {
-  // 채소류 (200)
-  배추: { itemCode: '211', kindCode: '00', categoryCode: '200' },
-  양배추: { itemCode: '212', kindCode: '00', categoryCode: '200' },
-  시금치: { itemCode: '213', kindCode: '00', categoryCode: '200' },
-  상추: { itemCode: '214', kindCode: '01', categoryCode: '200' },
-  깻잎: { itemCode: '215', kindCode: '00', categoryCode: '200' },
-  부추: { itemCode: '221', kindCode: '00', categoryCode: '200' },
-  피망: { itemCode: '222', kindCode: '00', categoryCode: '200' },
-  파프리카: { itemCode: '222', kindCode: '00', categoryCode: '200' },
-  양파: { itemCode: '223', kindCode: '00', categoryCode: '200' },
-  대파: { itemCode: '224', kindCode: '00', categoryCode: '200' },
-  마늘: { itemCode: '225', kindCode: '00', categoryCode: '200' },
-  생강: { itemCode: '226', kindCode: '00', categoryCode: '200' },
-  당근: { itemCode: '231', kindCode: '00', categoryCode: '200' },
-  감자: { itemCode: '232', kindCode: '01', categoryCode: '200' },
-  고구마: { itemCode: '232', kindCode: '00', categoryCode: '200' },
-  무: { itemCode: '233', kindCode: '00', categoryCode: '200' },
-  오이: { itemCode: '241', kindCode: '01', categoryCode: '200' },
-  애호박: { itemCode: '242', kindCode: '00', categoryCode: '200' },
-  호박: { itemCode: '242', kindCode: '00', categoryCode: '200' },
-  토마토: { itemCode: '243', kindCode: '00', categoryCode: '200' },
-  고추: { itemCode: '244', kindCode: '00', categoryCode: '200' },
-  풋고추: { itemCode: '244', kindCode: '00', categoryCode: '200' },
-  // 축산물 (500)
-  소고기: { itemCode: '511', kindCode: '00', categoryCode: '500' },
-  돼지고기: { itemCode: '521', kindCode: '06', categoryCode: '500' },
-  닭고기: { itemCode: '531', kindCode: '00', categoryCode: '500' },
-  닭: { itemCode: '531', kindCode: '00', categoryCode: '500' },
-  닭가슴살: { itemCode: '531', kindCode: '00', categoryCode: '500' },
-  계란: { itemCode: '541', kindCode: '01', categoryCode: '500' },
-  달걀: { itemCode: '541', kindCode: '01', categoryCode: '500' },
-  // 수산물 (600)
-  고등어: { itemCode: '611', kindCode: '00', categoryCode: '600' },
-  오징어: { itemCode: '612', kindCode: '00', categoryCode: '600' },
-  갈치: { itemCode: '613', kindCode: '00', categoryCode: '600' },
-  새우: { itemCode: '615', kindCode: '00', categoryCode: '600' },
-  // 식량작물 (100)
-  쌀: { itemCode: '111', kindCode: '02', categoryCode: '100' },
-  콩: { itemCode: '141', kindCode: '00', categoryCode: '100' },
-};
-
-// ─── 참가격 재료 매핑 (price-service.ts에서 복제) ─────────────────────
-const CONSUMER_KEYWORD_MAP: Record<string, string> = {
-  간장: '간장',
-  고추장: '고추장',
-  된장: '된장',
-  참기름: '참기름',
-  식용유: '식용유',
-  올리브유: '올리브유',
-  두부: '두부',
-  김: '김',
-  밀가루: '밀가루',
-  설탕: '설탕',
-  소금: '소금',
-  식초: '식초',
-  굴소스: '굴소스',
-  케찹: '케찹',
-  마요네즈: '마요네즈',
-  카레: '카레',
-  후추: '후추',
-  미역: '미역',
-  고춧가루: '고춧가루',
-  깨: '깨',
-  버터: '버터',
-  우유: '우유',
-  치즈: '치즈',
-  어묵: '어묵',
-  스팸: '스팸',
-  소면: '소면',
-  당면: '당면',
-};
 
 // ─── 카테고리 → standard_unit 매핑 ───────────────────────────────────
 type IngredientCategory =

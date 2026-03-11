@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { getIngredientPrices } from '@/lib/price-service';
 
+/**
+ * GET /api/weekly-trend?recipeIds=id1,id2,id3
+ * DB의 ingredient_prices 테이블에서 오늘 vs 7일 전 가격을 비교하여 트렌드 반환
+ */
 export async function GET(request: NextRequest) {
   const recipeIds = request.nextUrl.searchParams.get('recipeIds');
 
@@ -49,44 +52,86 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // 2. 가격 조회 (trend 포함)
-    const prices = await getIngredientPrices(uniqueNames);
+    // 2. DB에서 최신 가격 조회 (가장 최근 fetched_at 기준)
+    const { data: latestPrices } = await supabase
+      .from('ingredient_prices')
+      .select('ingredient_name, price, fetched_at')
+      .in('ingredient_name', uniqueNames)
+      .order('fetched_at', { ascending: false });
 
-    let currentTotal = 0;
-    let trendSum = 0;
-    let trendCount = 0;
-    let pricedCount = 0;
-
-    for (const [, result] of prices) {
-      currentTotal += result.price;
-      pricedCount++;
-
-      if (result.trend) {
-        trendSum += result.trend.changePercent;
-        trendCount++;
+    // 재료별 최신 가격만 추출
+    const currentPriceMap = new Map<string, number>();
+    for (const row of latestPrices ?? []) {
+      if (!currentPriceMap.has(row.ingredient_name)) {
+        currentPriceMap.set(row.ingredient_name, row.price);
       }
     }
 
-    // 3. 가중 평균 트렌드 계산
-    const avgChangePercent = trendCount > 0
-      ? Math.round((trendSum / trendCount) * 10) / 10
+    if (currentPriceMap.size === 0) {
+      return NextResponse.json({
+        currentTotal: 0,
+        weekAgoTotal: 0,
+        changeAmount: 0,
+        changePercent: 0,
+        direction: 'stable' as const,
+        pricedCount: 0,
+        totalCount: uniqueNames.length,
+      });
+    }
+
+    // 3. 7일 전 가격 조회
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    const weekAgoStr = weekAgo.toISOString().split('T')[0];
+
+    const { data: oldPrices } = await supabase
+      .from('ingredient_prices')
+      .select('ingredient_name, price')
+      .in('ingredient_name', [...currentPriceMap.keys()])
+      .lte('fetched_at', weekAgoStr)
+      .order('fetched_at', { ascending: false });
+
+    const oldPriceMap = new Map<string, number>();
+    for (const row of oldPrices ?? []) {
+      if (!oldPriceMap.has(row.ingredient_name)) {
+        oldPriceMap.set(row.ingredient_name, row.price);
+      }
+    }
+
+    // 4. 실제 합산으로 변동 계산
+    let currentTotal = 0;
+    let weekAgoTotal = 0;
+    let trendableCount = 0;
+
+    for (const [name, price] of currentPriceMap) {
+      currentTotal += price;
+      const oldPrice = oldPriceMap.get(name);
+      if (oldPrice !== undefined) {
+        weekAgoTotal += oldPrice;
+        trendableCount++;
+      } else {
+        weekAgoTotal += price; // 이전 데이터 없으면 현재 가격으로 대체
+      }
+    }
+
+    const changeAmount = Math.round(currentTotal - weekAgoTotal);
+    const changePercent = weekAgoTotal > 0
+      ? Math.round(((currentTotal - weekAgoTotal) / weekAgoTotal) * 1000) / 10
       : 0;
 
-    const changeAmount = Math.round(currentTotal * (avgChangePercent / 100));
-    const weekAgoTotal = currentTotal - changeAmount;
-
     const direction: 'up' | 'down' | 'stable' =
-      avgChangePercent > 2 ? 'up' : avgChangePercent < -2 ? 'down' : 'stable';
+      changePercent > 2 ? 'up' : changePercent < -2 ? 'down' : 'stable';
 
     return NextResponse.json(
       {
         currentTotal: Math.round(currentTotal),
         weekAgoTotal: Math.round(weekAgoTotal),
         changeAmount,
-        changePercent: avgChangePercent,
+        changePercent,
         direction,
-        pricedCount,
+        pricedCount: currentPriceMap.size,
         totalCount: uniqueNames.length,
+        hasHistory: trendableCount > 0,
       },
       {
         headers: {

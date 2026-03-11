@@ -3,10 +3,9 @@
  * 폴백 체인: KAMIS → 참가격 → 네이버 쇼핑 → 정적사전
  */
 import {
-  fetchDailyPricesByCategory,
+  fetchAllDailyPrices,
   getLatestPrice,
   calcTrend,
-  KAMIS_CATEGORIES,
   type KamisPriceItem,
   type KamisCategoryCode,
 } from './kamis';
@@ -26,7 +25,7 @@ export interface PriceResult {
 }
 
 // ─── 재료 → KAMIS 품목 매핑 ──────────────────────────────────────────
-interface KamisMapping {
+export interface KamisMapping {
   itemCode: string;
   kindCode: string;
   categoryCode: KamisCategoryCode;
@@ -34,7 +33,7 @@ interface KamisMapping {
   unitConversion?: number; // KAMIS 단위 → 조리 단위 변환 계수
 }
 
-const KAMIS_INGREDIENT_MAP: Record<string, KamisMapping> = {
+export const KAMIS_INGREDIENT_MAP: Record<string, KamisMapping> = {
   // 채소류 (200)
   배추: { itemCode: '211', kindCode: '00', categoryCode: '200' },
   양배추: { itemCode: '212', kindCode: '00', categoryCode: '200' },
@@ -77,7 +76,7 @@ const KAMIS_INGREDIENT_MAP: Record<string, KamisMapping> = {
 };
 
 // ─── 재료 → 참가격 검색 키워드 매핑 ─────────────────────────────────
-const CONSUMER_KEYWORD_MAP: Record<string, string> = {
+export const CONSUMER_KEYWORD_MAP: Record<string, string> = {
   간장: '간장',
   고추장: '고추장',
   된장: '된장',
@@ -118,21 +117,13 @@ async function getKamisData(): Promise<Map<string, KamisPriceItem[]>> {
   }
 
   const allItems = new Map<string, KamisPriceItem[]>();
-  const categories: KamisCategoryCode[] = [
-    KAMIS_CATEGORIES.VEGETABLE,
-    KAMIS_CATEGORIES.LIVESTOCK,
-    KAMIS_CATEGORIES.SEAFOOD,
-    KAMIS_CATEGORIES.GRAIN,
-  ];
+  const items = await fetchAllDailyPrices();
 
-  for (const cat of categories) {
-    const items = await fetchDailyPricesByCategory(cat);
-    for (const item of items) {
-      const key = `${item.itemCode}:${item.kindCode}`;
-      const existing = allItems.get(key) ?? [];
-      existing.push(item);
-      allItems.set(key, existing);
-    }
+  for (const item of items) {
+    const key = `${item.itemCode}:${item.kindCode}`;
+    const existing = allItems.get(key) ?? [];
+    existing.push(item);
+    allItems.set(key, existing);
   }
 
   kamisCache = allItems;
