@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useEffect, useState, useCallback } from 'react';
+import { Suspense, useEffect, useState, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Copy, Check, ChevronDown, ChevronRight, ShoppingBasket, Coins } from 'lucide-react';
@@ -10,6 +10,14 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { BackButton } from '@/components/back-button';
 import { CATEGORY_EMOJI } from '@/lib/constants';
+
+interface PriceInfo {
+  price: number;
+  unit: string;
+  source: string;
+  confidence: number;
+  trend?: { direction: 'up' | 'down' | 'stable'; changePercent: number };
+}
 
 const STORAGE_KEY_PREFIX = 'sotto-grocery-checked';
 
@@ -57,14 +65,20 @@ interface CategorySectionProps {
   category: GroceryCategoryData;
   checked: Set<string>;
   onToggle: (key: string) => void;
+  prices: Record<string, PriceInfo>;
 }
 
-function CategorySection({ category, checked, onToggle }: CategorySectionProps) {
+function CategorySection({ category, checked, onToggle, prices }: CategorySectionProps) {
   const checkedCount = category.items.filter((item) => checked.has(`${category.category}:${item.name}`)).length;
   const allChecked = checkedCount === category.items.length;
   const [open, setOpen] = useState(!allChecked);
 
   const emoji = CATEGORY_EMOJI[category.category] ?? '📦';
+
+  const categoryTotal = category.items.reduce((sum, item) => {
+    const p = prices[item.name];
+    return p ? sum + p.price : sum;
+  }, 0);
 
   return (
     <div className={`overflow-hidden rounded-2xl border shadow-card transition-all ${allChecked ? 'border-green-200 bg-green-50' : 'border-sotto-200 bg-white'}`}>
@@ -82,6 +96,11 @@ function CategorySection({ category, checked, onToggle }: CategorySectionProps) 
           </span>
         </div>
         <div className="flex items-center gap-2">
+          {categoryTotal > 0 && (
+            <span className="text-xs font-semibold text-accent-600">
+              ~{categoryTotal.toLocaleString()}원
+            </span>
+          )}
           <span className={`text-xs font-medium ${allChecked ? 'text-green-600' : 'text-sotto-500'}`}>
             {checkedCount}/{category.items.length}
           </span>
@@ -134,9 +153,16 @@ function CategorySection({ category, checked, onToggle }: CategorySectionProps) 
                         </p>
                       )}
                     </div>
-                    {item.totalAmount && (
-                      <span className="flex-shrink-0 text-sm text-sotto-600">{item.totalAmount}</span>
-                    )}
+                    <div className="flex flex-shrink-0 items-center gap-2">
+                      {item.totalAmount && (
+                        <span className="text-sm text-sotto-600">{item.totalAmount}</span>
+                      )}
+                      {prices[item.name] && (
+                        <span className="text-xs font-medium text-accent-600">
+                          ~{prices[item.name].price.toLocaleString()}원
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </label>
               </li>
@@ -165,6 +191,7 @@ function GroceryPage() {
   const [error, setError] = useState<string | null>(null);
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const [copied, setCopied] = useState(false);
+  const [prices, setPrices] = useState<Record<string, PriceInfo>>({});
 
   const storageKey = getStorageKey(idsParam);
 
@@ -201,6 +228,32 @@ function GroceryPage() {
     fetchGrocery();
     return () => controller.abort();
   }, [idsParam]);
+
+  // 가격 조회: grocery 데이터 로드 후
+  useEffect(() => {
+    if (!groceryData || groceryData.categories.length === 0) return;
+    const controller = new AbortController();
+    const allNames = groceryData.categories
+      .flatMap((cat) => cat.items.map((item) => item.name))
+      .slice(0, 30);
+    if (allNames.length === 0) return;
+
+    async function fetchPrices() {
+      try {
+        const res = await fetch(
+          `/api/prices?names=${encodeURIComponent(allNames.join(','))}`,
+          { signal: controller.signal },
+        );
+        if (!res.ok) return;
+        const data = await res.json();
+        setPrices(data.prices ?? {});
+      } catch (err) {
+        if (err instanceof DOMException && err.name === 'AbortError') return;
+      }
+    }
+    fetchPrices();
+    return () => controller.abort();
+  }, [groceryData]);
 
   const handleToggle = useCallback((key: string) => {
     setChecked((prev) => {
@@ -298,12 +351,21 @@ function GroceryPage() {
         </div>
       )}
 
-      {/* Price tier summary */}
-      {groceryData && 'priceTierSummary' in groceryData && (groceryData as GroceryResponse & { priceTierSummary?: { tier1: number; tier2: number; tier3: number } }).priceTierSummary && (
-        <div className="mb-6 flex items-center gap-3 rounded-xl border border-sotto-200 bg-white px-4 py-3 shadow-card">
-          <Coins className="h-4 w-4 text-sotto-400" />
-          <span className="text-sm font-medium text-sotto-500">레시피 기준 원가:</span>
-          <span className="text-sm text-sotto-600">tier 요약</span>
+      {/* Total estimated cost */}
+      {groceryData && Object.keys(prices).length > 0 && (
+        <div className="mb-6 flex items-center justify-between rounded-xl border border-sotto-200 bg-gradient-to-br from-sotto-500/[0.08] to-sotto-500/[0.04] px-4 py-3 shadow-card">
+          <div className="flex items-center gap-2">
+            <Coins className="h-4 w-4 text-sotto-500" />
+            <span className="text-sm font-medium text-sotto-600">총 예상 비용</span>
+          </div>
+          <div className="text-right">
+            <span className="text-lg font-bold text-sotto-800">
+              ~{Object.values(prices).reduce((s, p) => s + p.price, 0).toLocaleString()}원
+            </span>
+            <span className="ml-1.5 text-xs text-sotto-500">
+              ({Object.keys(prices).length}/{totalItems}개 기준)
+            </span>
+          </div>
         </div>
       )}
 
@@ -326,6 +388,7 @@ function GroceryPage() {
               category={cat}
               checked={checked}
               onToggle={handleToggle}
+              prices={prices}
             />
           ))}
         </div>
