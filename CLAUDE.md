@@ -12,14 +12,14 @@
 - **DB**: Supabase (PostgreSQL + RLS)
 - **Icons**: Lucide React
 - **Test**: Vitest (설정만 됨)
-- **Linting**: ESLint + Prettier + prettier-plugin-tailwindcss
+- **Linting**: ESLint 9 (flat config) + Prettier + prettier-plugin-tailwindcss
 
 ## 명령어
 
 ```bash
 bun dev              # 개발 서버
 bun run build        # 프로덕션 빌드
-bun run lint         # ESLint
+bun run lint         # ESLint (eslint src/ — flat config, next lint 아님)
 bun run seed         # 식약처 API → Supabase 레시피 적재
 bun run parse-ingredients  # raw_ingredients → recipe_ingredients 파싱
 bun run classify-tags      # concept_tags 규칙 기반 자동 분류
@@ -139,9 +139,18 @@ DATA_GO_KR_API_KEY=               # 공공데이터포털 API 키 (참가격)
 - **카드 패턴**: `rounded-2xl border-sotto-200 shadow-sm`
 - **레이아웃**: `max-w-4xl mx-auto px-4`
 
+## 배포
+
+- **플랫폼**: Vercel (GitHub 자동 배포 연동)
+- **URL**: https://sotto-blush.vercel.app
+- **main 브랜치 push** → Vercel 프로덕션 자동 배포
+- **환경 변수**: Vercel Dashboard에 9개 설정 완료 (`.env.local`과 동일 키셋)
+- Vercel 배포 시 `bun run build`가 실행되므로 로컬 빌드 통과 확인 필수
+
 ## 워크플로우 규칙
 
 - 작업 완료 시 자동으로 git commit 수행 (별도 요청 불필요)
+- main 브랜치 push 시 Vercel 자동 배포 트리거됨 (별도 배포 명령 불필요)
 
 ## 코딩 컨벤션
 
@@ -153,3 +162,4 @@ DATA_GO_KR_API_KEY=               # 공공데이터포털 API 키 (참가격)
 - 가격 조회: `price-service.ts` 통합 서비스 (KAMIS→참가격→네이버→정적사전 폴백 체인)
 - 가격 UI: Server Component 페이지 내 Client Component 경계 분리, `useIngredientPrices` 훅으로 `/api/prices` fetch
 - scripts .env: `import './lib/load-env'` side-effect import로 `.env.local` 로딩
+- ESLint: flat config (`eslint.config.mjs`) 사용 — `.eslintrc.*` 파일 사용 금지, `next lint` 명령 사용 불가
