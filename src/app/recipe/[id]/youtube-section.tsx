@@ -15,19 +15,24 @@ export function YouTubeSection({ recipeId, existingVideoId }: YouTubeSectionProp
 
   useEffect(() => {
     if (existingVideoId) return;
+    const controller = new AbortController();
     async function fetchVideo() {
       try {
-        const res = await fetch(`/api/youtube?recipeId=${recipeId}`);
+        const res = await fetch(`/api/youtube?recipeId=${recipeId}`, {
+          signal: controller.signal,
+        });
         if (!res.ok) return;
         const data = await res.json();
         if (data.videoId) setVideoId(data.videoId);
-      } catch {
+      } catch (err) {
+        if (err instanceof DOMException && err.name === 'AbortError') return;
         toast.error('영상 정보를 불러오지 못했어요');
       } finally {
         setLoading(false);
       }
     }
     fetchVideo();
+    return () => controller.abort();
   }, [recipeId, existingVideoId]);
 
   if (loading) {

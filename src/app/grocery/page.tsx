@@ -174,6 +174,7 @@ function GroceryPage() {
 
   useEffect(() => {
     if (!idsParam) return;
+    const controller = new AbortController();
     async function fetchGrocery() {
       setLoading(true);
       setError(null);
@@ -183,11 +184,13 @@ function GroceryPage() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ recipeIds }),
+          signal: controller.signal,
         });
         if (!res.ok) throw new Error('장보기 목록을 불러올 수 없어요');
         const data: GroceryResponse = await res.json();
         setGroceryData(data);
       } catch (err) {
+        if (err instanceof DOMException && err.name === 'AbortError') return;
         const msg = err instanceof Error ? err.message : '오류가 발생했어요';
         setError(msg);
         toast.error(msg);
@@ -196,6 +199,7 @@ function GroceryPage() {
       }
     }
     fetchGrocery();
+    return () => controller.abort();
   }, [idsParam]);
 
   const handleToggle = useCallback((key: string) => {
