@@ -3,7 +3,8 @@
 import { useMemo } from 'react';
 import type { RecipeIngredient } from '@/types/recipe';
 import { CATEGORY_LABELS, CATEGORY_ORDER, CATEGORY_EMOJI } from '@/lib/constants';
-import { useIngredientPrices, PriceTag } from './ingredient-prices';
+import { useIngredientPrices } from './ingredient-prices';
+import { PriceTag } from '@/components/ui/price-tag';
 
 const CATEGORY_DOT_COLORS: Record<string, string> = {
   vegetable: 'bg-green-400',
