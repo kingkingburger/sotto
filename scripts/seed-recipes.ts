@@ -1,19 +1,10 @@
-import './lib/load-env';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from './lib/supabase';
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const SERVICE_ROLE_KEY = process.env.SUPABASE_SECRET_KEY!;
 const FOODSAFETY_API_KEY = process.env.FOODSAFETY_API_KEY || 'sample';
 
-if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
-  console.error('Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SECRET_KEY');
-  process.exit(1);
-}
 if (FOODSAFETY_API_KEY === 'sample') {
   console.log('No FOODSAFETY_API_KEY found — using "sample" key (paginated, 100/page)');
 }
-
-const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
 type DishTypeValue = 'rice' | 'side' | 'soup' | 'one_plate' | 'dessert' | 'other';
 

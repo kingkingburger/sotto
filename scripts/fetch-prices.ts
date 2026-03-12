@@ -2,20 +2,9 @@
  * 일일 가격 수집 스크립트 — KAMIS + 참가격 → ingredient_prices 저장
  * Usage: bun run scripts/fetch-prices.ts
  */
-import './lib/load-env';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from './lib/supabase';
 import { fetchAllDailyPrices, getLatestPrice } from '../src/lib/kamis';
 import { getConsumerMedianPrice } from '../src/lib/consumer-price';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SECRET_KEY;
-
-if (!supabaseUrl || !supabaseKey) {
-  console.error('Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SECRET_KEY');
-  process.exit(1);
-}
-
-const supabase = createClient(supabaseUrl, supabaseKey);
 const today = new Date().toISOString().split('T')[0];
 
 async function main() {

@@ -3,18 +3,8 @@
  * Usage: bun run estimate-prices
  */
 
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from './lib/supabase';
 import { calculatePrice, PRICE_BASE_DATE } from '../src/lib/price-dictionary';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SECRET_KEY;
-
-if (!supabaseUrl || !supabaseKey) {
-  console.error('Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SECRET_KEY');
-  process.exit(1);
-}
-
-const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function main() {
   console.log(`\n=== 레시피 가격 추정 스크립트 ===`);

@@ -1,21 +1,10 @@
-import './lib/load-env';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from './lib/supabase';
 import {
   KAMIS_INGREDIENT_MAP,
   CONSUMER_KEYWORD_MAP,
   type KamisMapping,
 } from '../src/lib/price-service';
 import type { KamisCategoryCode } from '../src/lib/kamis';
-
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const SERVICE_ROLE_KEY = process.env.SUPABASE_SECRET_KEY!;
-
-if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
-  console.error('Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SECRET_KEY');
-  process.exit(1);
-}
-
-const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
 // ─── 카테고리 → standard_unit 매핑 ───────────────────────────────────
 type IngredientCategory =
@@ -61,20 +50,63 @@ function kamisCategoryToIngredient(
   }
 }
 
+// ─── 재료명 정규화 ────────────────────────────────────────────────────
+/**
+ * 재료명에서 수량/단위/부연 설명을 제거하여 핵심 이름만 추출
+ * 예: "돼지고기(목살) 300g" → "돼지고기"
+ *     "간장 1큰술" → "간장"
+ *     "양파(국내산) 1/2개" → "양파"
+ */
+function normalizeIngredientName(name: string): string {
+  return name
+    .replace(/\(.*?\)/g, '')                            // 괄호 및 내용 제거: (목살), (국내산)
+    .replace(/\d+\/\d+/g, '')                           // 분수 제거: 1/2, 1/3
+    .replace(/\d+[.,]?\d*\s*(?:g|kg|ml|l|cc|L|G|Kg|ML)/gi, '') // 용량 단위: 300g, 1.5kg, 200ml
+    .replace(/\d+\s*(?:큰술|작은술|컵|개|장|봉|캔|모|팩|포|줄|마리|토막|쪽|알|줌|움큼|꼬집)/g, '') // 조리 단위
+    .replace(/약간|조금|적당량|적당히|소량|다량|취향껏/g, '') // 분량 표현
+    .replace(/[,·×x\*]/g, '')                           // 구분자 제거
+    .replace(/\s+/g, ' ')                               // 다중 공백 → 단일
+    .trim();
+}
+
 // ─── 매핑 탐색 헬퍼 ──────────────────────────────────────────────────
 function findKamisMapping(name: string): KamisMapping | null {
+  const normalized = normalizeIngredientName(name);
+
+  // 1. 정확한 매칭 (원본 → 정규화 순)
   if (KAMIS_INGREDIENT_MAP[name]) return KAMIS_INGREDIENT_MAP[name];
+  if (KAMIS_INGREDIENT_MAP[normalized]) return KAMIS_INGREDIENT_MAP[normalized];
+
+  // 2. 부분 매칭: 정규화된 이름이 맵 키를 포함하거나, 맵 키가 정규화된 이름을 포함
+  for (const [key, mapping] of Object.entries(KAMIS_INGREDIENT_MAP)) {
+    if (normalized.includes(key) || key.includes(normalized)) return mapping;
+  }
+
+  // 3. 원본으로 부분 매칭 재시도 (정규화로 유실된 경우 복구)
   for (const [key, mapping] of Object.entries(KAMIS_INGREDIENT_MAP)) {
     if (name.includes(key)) return mapping;
   }
+
   return null;
 }
 
 function findConsumerKeyword(name: string): string | null {
+  const normalized = normalizeIngredientName(name);
+
+  // 1. 정확한 매칭
   if (CONSUMER_KEYWORD_MAP[name]) return CONSUMER_KEYWORD_MAP[name];
-  for (const key of Object.keys(CONSUMER_KEYWORD_MAP)) {
-    if (name.includes(key)) return CONSUMER_KEYWORD_MAP[key];
+  if (CONSUMER_KEYWORD_MAP[normalized]) return CONSUMER_KEYWORD_MAP[normalized];
+
+  // 2. 부분 매칭
+  for (const [key, keyword] of Object.entries(CONSUMER_KEYWORD_MAP)) {
+    if (normalized.includes(key) || key.includes(normalized)) return keyword;
   }
+
+  // 3. 원본으로 부분 매칭 재시도
+  for (const [key, keyword] of Object.entries(CONSUMER_KEYWORD_MAP)) {
+    if (name.includes(key)) return keyword;
+  }
+
   return null;
 }
 

@@ -6,18 +6,14 @@ import Link from 'next/link';
 import { Copy, Check, ChevronDown, ChevronRight, ShoppingBasket, Coins } from 'lucide-react';
 import { toast } from 'sonner';
 import type { GroceryResponse, GroceryCategory as GroceryCategoryData } from '@/types/grocery';
+import type { PriceResult } from '@/types/price';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { BackButton } from '@/components/back-button';
+import { PriceTag } from '@/components/ui/price-tag';
 import { CATEGORY_EMOJI } from '@/lib/constants';
 
-interface PriceInfo {
-  price: number;
-  unit: string;
-  source: string;
-  confidence: number;
-  trend?: { direction: 'up' | 'down' | 'stable'; changePercent: number };
-}
+type PriceInfo = PriceResult;
 
 const STORAGE_KEY_PREFIX = 'sotto-grocery-checked';
 
@@ -80,6 +76,19 @@ function CategorySection({ category, checked, onToggle, prices }: CategorySectio
     return p ? sum + p.price : sum;
   }, 0);
 
+  // 카테고리 내 아이템들의 trend 다수결: up이 많으면 up, down이 많으면 down
+  const categoryTrend = (() => {
+    const trends = category.items
+      .map((item) => prices[item.name]?.trend?.direction)
+      .filter(Boolean) as ('up' | 'down' | 'stable')[];
+    if (trends.length === 0) return null;
+    const upCount = trends.filter((d) => d === 'up').length;
+    const downCount = trends.filter((d) => d === 'down').length;
+    if (upCount > downCount) return 'up';
+    if (downCount > upCount) return 'down';
+    return null;
+  })();
+
   return (
     <div className={`overflow-hidden rounded-2xl border shadow-card transition-all ${allChecked ? 'border-green-200 bg-green-50' : 'border-sotto-200 bg-white'}`}>
       <button
@@ -97,8 +106,10 @@ function CategorySection({ category, checked, onToggle, prices }: CategorySectio
         </div>
         <div className="flex items-center gap-2">
           {categoryTotal > 0 && (
-            <span className="text-xs font-semibold text-accent-600">
+            <span className="flex items-center gap-1 text-xs font-semibold text-accent-600">
               ~{categoryTotal.toLocaleString()}원
+              {categoryTrend === 'up' && <span className="text-red-500">↑</span>}
+              {categoryTrend === 'down' && <span className="text-green-600">↓</span>}
             </span>
           )}
           <span className={`text-xs font-medium ${allChecked ? 'text-green-600' : 'text-sotto-500'}`}>
@@ -157,11 +168,7 @@ function CategorySection({ category, checked, onToggle, prices }: CategorySectio
                       {item.totalAmount && (
                         <span className="text-sm text-sotto-600">{item.totalAmount}</span>
                       )}
-                      {prices[item.name] && (
-                        <span className="text-xs font-medium text-accent-600">
-                          ~{prices[item.name].price.toLocaleString()}원
-                        </span>
-                      )}
+                      <PriceTag price={prices[item.name]} loading={false} />
                     </div>
                   </div>
                 </label>
@@ -352,22 +359,44 @@ function GroceryPage() {
       )}
 
       {/* Total estimated cost */}
-      {groceryData && Object.keys(prices).length > 0 && (
-        <div className="mb-6 flex items-center justify-between rounded-xl border border-sotto-200 bg-gradient-to-br from-sotto-500/[0.08] to-sotto-500/[0.04] px-4 py-3 shadow-card">
-          <div className="flex items-center gap-2">
-            <Coins className="h-4 w-4 text-sotto-500" />
-            <span className="text-sm font-medium text-sotto-600">총 예상 비용</span>
+      {groceryData && Object.keys(prices).length > 0 && (() => {
+        const totalCost = Object.values(prices).reduce((s, p) => s + p.price, 0);
+        const allTrends = Object.values(prices)
+          .map((p) => p.trend?.direction)
+          .filter(Boolean) as ('up' | 'down' | 'stable')[];
+        const upCount = allTrends.filter((d) => d === 'up').length;
+        const downCount = allTrends.filter((d) => d === 'down').length;
+        const overallTrend = upCount > downCount ? 'up' : downCount > upCount ? 'down' : null;
+
+        return (
+          <div className="mb-6 flex items-center justify-between rounded-xl border border-sotto-200 bg-gradient-to-br from-sotto-500/[0.08] to-sotto-500/[0.04] px-4 py-3 shadow-card">
+            <div className="flex items-center gap-2">
+              <Coins className="h-4 w-4 text-sotto-500" />
+              <span className="text-sm font-medium text-sotto-600">총 예상 비용</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="text-right">
+                <span className="text-lg font-bold text-sotto-800">
+                  ~{totalCost.toLocaleString()}원
+                </span>
+                <span className="ml-1.5 text-xs text-sotto-500">
+                  ({Object.keys(prices).length}/{totalItems}개 기준)
+                </span>
+              </div>
+              {overallTrend === 'up' && (
+                <span className="flex items-center gap-0.5 rounded-full bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-500">
+                  ↑ 상승세
+                </span>
+              )}
+              {overallTrend === 'down' && (
+                <span className="flex items-center gap-0.5 rounded-full bg-green-50 px-2 py-0.5 text-xs font-semibold text-green-600">
+                  ↓ 하락세
+                </span>
+              )}
+            </div>
           </div>
-          <div className="text-right">
-            <span className="text-lg font-bold text-sotto-800">
-              ~{Object.values(prices).reduce((s, p) => s + p.price, 0).toLocaleString()}원
-            </span>
-            <span className="ml-1.5 text-xs text-sotto-500">
-              ({Object.keys(prices).length}/{totalItems}개 기준)
-            </span>
-          </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Content */}
       {loading ? (
