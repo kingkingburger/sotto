@@ -11,7 +11,7 @@
 - **Styling**: Tailwind CSS 3.4 + Pretendard 폰트
 - **DB**: Supabase (PostgreSQL + RLS)
 - **Icons**: Lucide React
-- **Test**: Vitest (설정만 됨)
+- **Test**: Vitest 4 (v8 coverage, 50 tests)
 - **Linting**: ESLint 9 (flat config) + Prettier + prettier-plugin-tailwindcss
 
 ## 명령어
@@ -25,6 +25,8 @@ bun run parse-ingredients  # raw_ingredients → recipe_ingredients 파싱
 bun run classify-tags      # concept_tags 규칙 기반 자동 분류
 bun run build-mappings     # 재료→KAMIS/참가격 API 매핑 → ingredient_mappings 테이블
 bun run scripts/fetch-prices.ts  # KAMIS + 참가격 일일 가격 수집 → ingredient_prices (GitHub Actions 자동 실행)
+bun run test             # Vitest 단위 테스트 실행
+bun run test:watch       # Vitest watch 모드
 ```
 
 ## 디렉토리 구조
@@ -39,7 +41,7 @@ src/
 │   ├── recipe/[id]/        # 레시피 상세 (/recipe/:id)
 │   │   ├── page.tsx        # Server Component
 │   │   ├── ingredients-section.tsx  # 재료 + 가격 — Client
-│   │   └── ingredient-prices.tsx    # useIngredientPrices 훅 + PriceTag — Client
+│   │   └── ingredient-prices.tsx    # useIngredientPrices 훅 — Client
 │   └── api/
 │       ├── recommend/      # POST 주간 메뉴 추천
 │       ├── reroll/         # POST 단일 메뉴 재뽑기
@@ -50,7 +52,7 @@ src/
 ├── components/
 │   ├── layout/header.tsx
 │   ├── back-button.tsx
-│   └── ui/                 # Button, Badge, Skeleton, Checkbox, FilterSheet
+│   └── ui/                 # Button, Badge, Skeleton, Checkbox, FilterSheet, PriceTag
 ├── lib/
 │   ├── constants.ts        # 태그, 카테고리, 라벨, 이모지 상수
 │   ├── recommend.ts        # 추천 로직 (shuffle + diversify)
@@ -63,17 +65,22 @@ src/
 │   ├── consumer-price.ts   # 참가격(한국소비자원) API
 │   ├── naver-shopping.ts   # 네이버 쇼핑 API (폴백)
 │   ├── price-dictionary.ts # 정적 가격 사전 (최종 폴백)
-│   └── api/youtube.ts      # YouTube Data API v3
+│   ├── api-utils.ts        # POST 라우트 JSON 파싱 + Zod 검증 헬퍼
+│   ├── api/youtube.ts      # YouTube Data API v3
+│   └── __tests__/          # grocery, recommend, price-service 단위 테스트
 ├── hooks/
 │   ├── use-reduced-motion.ts
-│   └── use-online.ts
+│   ├── use-online.ts
+│   └── use-fetch.ts        # AbortController 자동 관리 fetch 훅
 └── types/
     ├── recipe.ts           # Recipe, RecipeSummary, RecipeStep, RecipeIngredient
     ├── menu.ts             # DayMenu, MealPlan, RecommendRequest
-    └── grocery.ts          # GroceryItem, GroceryCategory
+    ├── grocery.ts          # GroceryItem, GroceryCategory
+    └── price.ts            # PriceResult, PriceSource, TrendDirection
 
 scripts/
 ├── lib/load-env.ts         # 공통 .env.local 로더
+├── lib/supabase.ts         # scripts 공용 Supabase 클라이언트 (load-env 포함)
 ├── build-mappings.ts       # 재료→API 매핑 빌드
 ├── fetch-prices.ts         # KAMIS + 참가격 일일 가격 수집
 ├── seed-recipes.ts         # 식약처 API 레시피 시드
@@ -82,7 +89,8 @@ scripts/
 └── estimate-prices.ts      # 정적 가격 추정
 
 .github/workflows/
-└── fetch-prices.yml        # 일일 가격 수집 (KST 06:00 크론)
+├── fetch-prices.yml        # 일일 가격 수집 (KST 06:00 크론)
+└── ci.yml                  # PR/push lint + build + test (GitHub Actions)
 ```
 
 ## DB 스키마 (Supabase)
@@ -161,5 +169,7 @@ DATA_GO_KR_API_KEY=               # 공공데이터포털 API 키 (참가격)
 - 타입: `src/types/`에 도메인별 분리 (recipe, menu, grocery)
 - 가격 조회: `price-service.ts` 통합 서비스 (KAMIS→참가격→네이버→정적사전 폴백 체인)
 - 가격 UI: Server Component 페이지 내 Client Component 경계 분리, `useIngredientPrices` 훅으로 `/api/prices` fetch
-- scripts .env: `import './lib/load-env'` side-effect import로 `.env.local` 로딩
+- scripts Supabase: `import { supabase } from './lib/supabase'` — load-env 포함, 6개 스크립트 공용
+- API POST 라우트: `parseRequestBody(req, schema)` 헬퍼로 JSON 파싱 + Zod 검증 (`api-utils.ts`)
+- Client fetch: `useFetch<T>(url)` 훅으로 AbortController 자동 관리 (`use-fetch.ts`)
 - ESLint: flat config (`eslint.config.mjs`) 사용 — `.eslintrc.*` 파일 사용 금지, `next lint` 명령 사용 불가
