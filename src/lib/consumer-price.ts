@@ -6,8 +6,72 @@
 const BASE_URL = 'https://api.odcloud.kr/api/15083256/v1';
 const TIMEOUT_MS = 8000;
 
-// 최신 데이터셋 UUID (2026-01-30 기준) — 월별 업데이트 시 갱신 필요
-const LATEST_UUID = 'uddi:018577ec-a736-4341-8a14-8d6051d25f6c';
+// 최신 데이터셋 UUID (2026-03-12 기준) — 월별 업데이트 시 갱신 필요
+// 동적 탐색이 실패할 경우 이 값을 폴백으로 사용
+const FALLBACK_UUID = 'uddi:018577ec-a736-4341-8a14-8d6051d25f6c';
+
+// 세션 내 UUID 캐시 (동적 탐색 결과)
+let resolvedUuid: string | null = null;
+
+/**
+ * 공공데이터포털 API에서 최신 유효 UUID를 동적으로 탐색
+ * - 최신 UUID를 먼저 시도하고, 실패하면 FALLBACK_UUID 사용
+ * - 탐색 성공 후 세션 내 캐시하여 중복 요청 방지
+ */
+async function resolveLatestUuid(apiKey: string): Promise<string> {
+  if (resolvedUuid) return resolvedUuid;
+
+  // odcloud.kr 메타데이터 API로 데이터셋 목록 조회 시도
+  const metaUrl = `https://api.odcloud.kr/api/15083256/v1?page=1&perPage=1&serviceKey=${apiKey}`;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
+
+  try {
+    const res = await fetch(metaUrl, { signal: controller.signal });
+    if (res.ok) {
+      const json = await res.json();
+      // API가 직접 응답하면 UUID 없이도 동작 — FALLBACK_UUID로 고정
+      if (json && (json.data || json.totalCount !== undefined)) {
+        // v1 루트가 직접 응답한 경우: UUID 불필요한 엔드포인트
+        resolvedUuid = FALLBACK_UUID;
+        return resolvedUuid;
+      }
+    }
+  } catch {
+    // 메타 요청 실패 시 폴백으로 진행
+  } finally {
+    clearTimeout(timeout);
+  }
+
+  // FALLBACK_UUID로 실제 데이터 조회 가능 여부 검증
+  const testUrl = new URL(`${BASE_URL}/${FALLBACK_UUID}`);
+  testUrl.searchParams.set('page', '1');
+  testUrl.searchParams.set('perPage', '1');
+  testUrl.searchParams.set('serviceKey', apiKey);
+
+  const testController = new AbortController();
+  const testTimeout = setTimeout(() => testController.abort(), TIMEOUT_MS);
+
+  try {
+    const testRes = await fetch(testUrl.toString(), { signal: testController.signal });
+    if (testRes.ok) {
+      resolvedUuid = FALLBACK_UUID;
+      return resolvedUuid;
+    }
+    // FALLBACK_UUID도 실패하면 만료 경고 후 그대로 반환 (호출부에서 빈 배열 처리)
+    console.warn(
+      '[consumer-price] UUID가 만료되었을 수 있습니다. ' +
+      `FALLBACK_UUID(${FALLBACK_UUID}) 확인 또는 갱신이 필요합니다.`,
+    );
+    resolvedUuid = FALLBACK_UUID;
+    return resolvedUuid;
+  } catch {
+    resolvedUuid = FALLBACK_UUID;
+    return resolvedUuid;
+  } finally {
+    clearTimeout(testTimeout);
+  }
+}
 
 export interface ConsumerPriceItem {
   productName: string;  // 상품명 (브랜드+규격 포함)
@@ -54,7 +118,7 @@ export async function searchConsumerPrices(
   const apiKey = getApiKey();
   if (!apiKey) return [];
 
-  const uuid = options?.uuid ?? LATEST_UUID;
+  const uuid = options?.uuid ?? (await resolveLatestUuid(apiKey));
   const perPage = options?.perPage ?? 20;
 
   const url = new URL(`${BASE_URL}/${uuid}`);
