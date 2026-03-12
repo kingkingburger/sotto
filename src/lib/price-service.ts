@@ -12,17 +12,10 @@ import {
 import { getConsumerMedianPrice } from './consumer-price';
 import { getIngredientPrices as getNaverPrices } from './naver-shopping';
 import { PRICE_DICTIONARY } from './price-dictionary';
+import type { PriceResult } from '@/types/price';
 
-export type PriceSource = 'kamis' | 'consumer' | 'naver' | 'static';
-export type TrendDirection = 'up' | 'down' | 'stable';
-
-export interface PriceResult {
-  price: number;
-  unit: string;
-  source: PriceSource;
-  confidence: number; // 0~1
-  trend?: { direction: TrendDirection; changePercent: number };
-}
+export type { PriceSource, TrendDirection } from '@/types/price';
+export type { PriceResult };
 
 // ─── 재료 → KAMIS 품목 매핑 ──────────────────────────────────────────
 export interface KamisMapping {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getIngredientPrices } from '@/lib/price-service';
+import type { PriceResult } from '@/types/price';
 
 /**
  * 간단한 IP 기반 레이트리밋 (슬라이딩 윈도우)
@@ -69,13 +70,7 @@ export async function GET(request: NextRequest) {
   try {
     const results = await getIngredientPrices(names);
 
-    const prices: Record<string, {
-      price: number;
-      unit: string;
-      source: string;
-      confidence: number;
-      trend?: { direction: string; changePercent: number };
-    }> = {};
+    const prices: Record<string, PriceResult> = {};
     for (const [name, result] of results) {
       prices[name] = {
         price: result.price,

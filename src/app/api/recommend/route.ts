@@ -3,6 +3,7 @@ import { getRecommendations } from '@/lib/recommend';
 import { getMockRecommendations } from '@/lib/mock-recommend';
 import { recommendRequestSchema } from '@/lib/schemas';
 import { RECIPE_SUMMARY_FIELDS, RECIPE_SUMMARY_FIELDS_EXTENDED } from '@/lib/constants';
+import { parseRequestBody } from '@/lib/api-utils';
 
 function isSupabaseConfigured(): boolean {
   return !!(
@@ -12,22 +13,10 @@ function isSupabaseConfigured(): boolean {
 }
 
 export async function POST(request: Request) {
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
-  }
+  const result = await parseRequestBody(request, recommendRequestSchema);
+  if (result.error) return result.error;
 
-  const parsed = recommendRequestSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: parsed.error.issues.map((i) => i.message).join(', ') },
-      { status: 400 },
-    );
-  }
-
-  const { tags, days, excludeIds, recipeIds } = parsed.data;
+  const { tags, days, excludeIds, recipeIds } = result.data;
 
   // If recipeIds provided, fetch those specific recipes (for URL reconstruction)
   if (recipeIds && recipeIds.length > 0) {

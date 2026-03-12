@@ -3,24 +3,13 @@ import { createClient } from '@/lib/supabase/server';
 import type { RecipeSummary } from '@/types/recipe';
 import { rerollRequestSchema } from '@/lib/schemas';
 import { RECIPE_SUMMARY_FIELDS, RECIPE_SUMMARY_FIELDS_EXTENDED, LUNCHBOX_DISH_TYPES } from '@/lib/constants';
+import { parseRequestBody } from '@/lib/api-utils';
 
 export async function POST(request: Request) {
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
-  }
+  const result = await parseRequestBody(request, rerollRequestSchema);
+  if (result.error) return result.error;
 
-  const parsed = rerollRequestSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: parsed.error.issues.map((i) => i.message).join(', ') },
-      { status: 400 },
-    );
-  }
-
-  const { tags, excludeIds, dishType } = parsed.data;
+  const { tags, excludeIds, dishType } = result.data;
 
   try {
     const supabase = await createClient();

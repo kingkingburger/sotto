@@ -1,8 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { Youtube, ExternalLink } from 'lucide-react';
-import { toast } from 'sonner';
+import { useFetch } from '@/hooks/use-fetch';
 
 interface YouTubeSectionProps {
   recipeId: string;
@@ -10,30 +9,9 @@ interface YouTubeSectionProps {
 }
 
 export function YouTubeSection({ recipeId, existingVideoId }: YouTubeSectionProps) {
-  const [videoId, setVideoId] = useState<string | null>(existingVideoId);
-  const [loading, setLoading] = useState(!existingVideoId);
-
-  useEffect(() => {
-    if (existingVideoId) return;
-    const controller = new AbortController();
-    async function fetchVideo() {
-      try {
-        const res = await fetch(`/api/youtube?recipeId=${recipeId}`, {
-          signal: controller.signal,
-        });
-        if (!res.ok) return;
-        const data = await res.json();
-        if (data.videoId) setVideoId(data.videoId);
-      } catch (err) {
-        if (err instanceof DOMException && err.name === 'AbortError') return;
-        toast.error('영상 정보를 불러오지 못했어요');
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchVideo();
-    return () => controller.abort();
-  }, [recipeId, existingVideoId]);
+  const url = existingVideoId ? null : `/api/youtube?recipeId=${recipeId}`;
+  const { data, loading } = useFetch<{ videoId: string | null }>(url);
+  const videoId = existingVideoId ?? data?.videoId ?? null;
 
   if (loading) {
     return (
