@@ -7,6 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint src/",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "seed": "tsx scripts/seed-recipes.ts",
     "parse-ingredients": "tsx scripts/parse-ingredients.ts",
     "classify-tags": "tsx scripts/classify-tags.ts",
@@ -34,6 +36,7 @@
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "@vitest/coverage-v8": "^4.0.18",
     "autoprefixer": "^10.4.24",
     "axe-playwright": "^2.2.2",
     "eslint": "^9.0.0",
@@ -44,6 +47,6 @@
     "tailwindcss": "^3.4.17",
     "tsx": "^4.19.0",
     "typescript": "^5.7.0",
-    "vitest": "^3.0.0"
+    "vitest": "^4.0.18"
   }
 }
