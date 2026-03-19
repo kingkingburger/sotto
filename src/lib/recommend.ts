@@ -1,11 +1,11 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { ConceptTag } from '@/types/recipe';
+import type { ConceptTag, RecipeSummary } from '@/types/recipe';
 import type { DayMenu, MealPlan } from '@/types/menu';
 import { RECIPE_SUMMARY_FIELDS, RECIPE_SUMMARY_FIELDS_EXTENDED, LUNCHBOX_DISH_TYPES } from '@/lib/constants';
 
 const POOL_LIMIT = 50;
 
-function shuffle<T>(arr: T[]): T[] {
+export function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -46,7 +46,7 @@ async function queryRecipes(
     excludeIds?: string[];
     limit?: number;
   },
-): Promise<any[]> {
+): Promise<RecipeSummary[]> {
   const { tags, excludeIds, limit = POOL_LIMIT } = filters;
 
   function applyFilters(q: ReturnType<ReturnType<SupabaseClient['from']>['select']>) {
@@ -64,7 +64,7 @@ async function queryRecipes(
   const extended = applyFilters(query.select(RECIPE_SUMMARY_FIELDS_EXTENDED));
   const { data, error } = await extended;
 
-  if (!error) return (data ?? []) as any[];
+  if (!error) return (data ?? []) as RecipeSummary[];
 
   // Fall back to base fields if extended columns don't exist
   if (error.code === '42703') {
@@ -73,7 +73,7 @@ async function queryRecipes(
     );
     const { data: baseData, error: baseError } = await base;
     if (baseError) throw new Error(`Failed to fetch recipes: ${baseError.message}`);
-    return (baseData ?? []) as any[];
+    return (baseData ?? []) as RecipeSummary[];
   }
 
   throw new Error(`Failed to fetch recipes: ${error.message}`);
