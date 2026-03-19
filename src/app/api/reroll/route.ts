@@ -14,7 +14,8 @@ export async function POST(request: Request) {
   try {
     const supabase = await createClient();
 
-    const buildQuery = async (matchDishType?: string): Promise<{ data: any[] | null; error: any }> => {
+    type QueryResult = { data: RecipeSummary[] | null; error: { code?: string; message: string } | null };
+    const buildQuery = async (matchDishType?: string): Promise<QueryResult> => {
       const applyFilters = (fields: string) => {
         let q = supabase
           .from('recipes')
@@ -36,7 +37,7 @@ export async function POST(request: Request) {
         }
 
         q = q.limit(20);
-        return q;
+        return q as unknown as Promise<QueryResult>;
       };
 
       const { data, error } = await applyFilters(RECIPE_SUMMARY_FIELDS_EXTENDED);

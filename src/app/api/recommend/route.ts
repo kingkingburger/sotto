@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getRecommendations } from '@/lib/recommend';
 import { getMockRecommendations } from '@/lib/mock-recommend';
+import type { RecipeSummary } from '@/types/recipe';
 import { recommendRequestSchema } from '@/lib/schemas';
 import { RECIPE_SUMMARY_FIELDS, RECIPE_SUMMARY_FIELDS_EXTENDED } from '@/lib/constants';
 import { parseRequestBody } from '@/lib/api-utils';
@@ -29,17 +30,18 @@ export async function POST(request: Request) {
       const { createClient } = await import('@/lib/supabase/server');
       const supabase = await createClient();
 
-      let result: { data: any[] | null; error: any } = await supabase
+      type QueryResult = { data: RecipeSummary[] | null; error: { code?: string; message: string } | null };
+      let result = await supabase
         .from('recipes')
         .select(RECIPE_SUMMARY_FIELDS_EXTENDED)
-        .in('id', recipeIds);
+        .in('id', recipeIds) as QueryResult;
 
       // Fall back to base fields if extended columns don't exist yet
       if (result.error?.code === '42703') {
         result = await supabase
           .from('recipes')
           .select(RECIPE_SUMMARY_FIELDS)
-          .in('id', recipeIds);
+          .in('id', recipeIds) as QueryResult;
       }
 
       const { data, error } = result;
