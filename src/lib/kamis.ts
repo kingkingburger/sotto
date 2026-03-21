@@ -172,9 +172,7 @@ export async function fetchAllDailyPrices(
     if (i > 0) {
       await sleep(CATEGORY_DELAY_MS);
     }
-    console.log(`  KAMIS 카테고리 ${categories[i]} 조회 중... (${i + 1}/${categories.length})`);
     const items = await fetchDailyPricesByCategory(categories[i], { date });
-    console.log(`  → ${items.length}개 품목`);
     results.push(...items);
   }
 

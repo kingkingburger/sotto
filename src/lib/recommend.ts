@@ -38,16 +38,17 @@ function diversify<T extends { dish_type: string }>(pool: T[], days: number): T[
  * Try selecting with extended fields (price_tier etc.), fall back to base fields
  * if DB migration hasn't been applied yet.
  */
-async function queryRecipes(
+export async function queryRecipes(
   query: ReturnType<SupabaseClient['from']>,
   filters: {
     isLunchboxFriendly?: boolean;
     tags?: ConceptTag[];
     excludeIds?: string[];
+    dishType?: string;
     limit?: number;
   },
 ): Promise<RecipeSummary[]> {
-  const { tags, excludeIds, limit = POOL_LIMIT } = filters;
+  const { tags, excludeIds, dishType, limit = POOL_LIMIT } = filters;
 
   function applyFilters(q: ReturnType<ReturnType<SupabaseClient['from']>['select']>) {
     let filtered = q.eq('is_lunchbox_friendly', true).in('dish_type', LUNCHBOX_DISH_TYPES).limit(limit);
@@ -56,6 +57,9 @@ async function queryRecipes(
     }
     if (excludeIds && excludeIds.length > 0) {
       filtered = filtered.not('id', 'in', `(${excludeIds.join(',')})`);
+    }
+    if (dishType) {
+      filtered = filtered.eq('dish_type', dishType);
     }
     return filtered;
   }
@@ -72,6 +76,32 @@ async function queryRecipes(
       query.select(RECIPE_SUMMARY_FIELDS),
     );
     const { data: baseData, error: baseError } = await base;
+    if (baseError) throw new Error(`Failed to fetch recipes: ${baseError.message}`);
+    return (baseData ?? []) as RecipeSummary[];
+  }
+
+  throw new Error(`Failed to fetch recipes: ${error.message}`);
+}
+
+/**
+ * ID 목록으로 레시피 조회 (extended→base 폴백 포함)
+ */
+export async function queryRecipesByIds(
+  supabase: SupabaseClient,
+  ids: string[],
+): Promise<RecipeSummary[]> {
+  const { data, error } = await supabase
+    .from('recipes')
+    .select(RECIPE_SUMMARY_FIELDS_EXTENDED)
+    .in('id', ids);
+
+  if (!error) return (data ?? []) as RecipeSummary[];
+
+  if (error.code === '42703') {
+    const { data: baseData, error: baseError } = await supabase
+      .from('recipes')
+      .select(RECIPE_SUMMARY_FIELDS)
+      .in('id', ids);
     if (baseError) throw new Error(`Failed to fetch recipes: ${baseError.message}`);
     return (baseData ?? []) as RecipeSummary[];
   }
